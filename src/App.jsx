@@ -1,7 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@supabase/supabase-js'
 import { Browser } from '@capacitor/browser'
+import { registerPlugin, Capacitor } from '@capacitor/core'
 import { APP_VERSION } from './version'
+
+// Native one-tap updater (Android): downloads the release APK and opens the
+// system installer. Falls back to opening the URL in a browser elsewhere.
+const Installer = registerPlugin('Installer');
 
 /* ====================== CONFIG — впиши свои значения ====================== */
 const SUPABASE_URL = "https://dbxhccdmovwoojigqimz.supabase.co";
@@ -248,8 +253,31 @@ function App({ session }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [update, setUpdate] = useState(null);
   const [updDismissed, setUpdDismissed] = useState(false);
+  const [installing, setInstalling] = useState(false);
+  const [dlPct, setDlPct] = useState(0);
   useEffect(() => { checkForUpdate().then(setUpdate); }, []);
   const toastT = useRef(null);
+
+  // One-tap update on Android: download the APK and open the system installer.
+  // Anywhere else (browser/preview) just open the release URL.
+  async function startUpdate() {
+    if (!update) return;
+    if (!Capacitor.isNativePlatform()) { Browser.open({ url: update.url }); return; }
+    setInstalling(true); setDlPct(0);
+    const sub = await Installer.addListener('downloadProgress', e => setDlPct(e?.percent ?? 0));
+    try {
+      await Installer.installApk({ url: update.url });
+    } catch (e) {
+      setInstalling(false);
+      // If the user hasn't granted "install unknown apps", the plugin opened the
+      // settings screen for them — leave the sheet so they can retry afterwards.
+      if (!String(e?.message || e).includes('PERMISSION_REQUIRED')) {
+        Browser.open({ url: update.url }); // fall back to a plain browser download
+      }
+    } finally {
+      sub.remove();
+    }
+  }
 
   async function reload() {
     const { data, error } = await sb.from('applications').select('*').order('date_applied', { ascending: false });
@@ -566,10 +594,15 @@ function App({ session }) {
               <Icon.Download width="28" height="28" style={{ color:'#7FA8EC' }} />
             </div>
             <div style={{ fontSize:20, fontWeight:700, letterSpacing:'-.2px' }}>Update available</div>
-            <div style={{ fontSize:14, color:'#9BA1AC', marginTop:8, lineHeight:1.5 }}>Version {update.version} is ready. Install it to get the latest features and fixes.</div>
+            <div style={{ fontSize:14, color:'#9BA1AC', marginTop:8, lineHeight:1.5 }}>{installing ? `Downloading… ${dlPct}%` : `Version ${update.version} is ready. Install it to get the latest features and fixes.`}</div>
+            {installing && (
+              <div style={{ height:6, borderRadius:3, background:'#2C323C', marginTop:16, overflow:'hidden' }}>
+                <div style={{ height:'100%', width:`${dlPct}%`, background:'#2A6FDB', transition:'width .15s linear' }} />
+              </div>
+            )}
             <div style={{ display:'flex', gap:12, marginTop:24 }}>
-              <button onClick={() => setUpdDismissed(true)} style={{ flex:'0 0 auto', padding:'0 22px', height:52, borderRadius:14, border:'1px solid #2C323C', background:'transparent', color:'#ECEEF1', fontSize:15, fontWeight:600, cursor:'pointer' }}>Later</button>
-              <button onClick={() => Browser.open({ url: update.url })} style={{ flex:1, height:52, border:'none', borderRadius:14, background:'#2A6FDB', color:'#fff', fontSize:15.5, fontWeight:700, cursor:'pointer', boxShadow:'0 8px 22px rgba(42,111,219,.4)', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}><Icon.Download width="18" height="18" />Update now</button>
+              <button disabled={installing} onClick={() => setUpdDismissed(true)} style={{ flex:'0 0 auto', padding:'0 22px', height:52, borderRadius:14, border:'1px solid #2C323C', background:'transparent', color:'#ECEEF1', fontSize:15, fontWeight:600, cursor:installing?'default':'pointer', opacity:installing?.5:1 }}>Later</button>
+              <button disabled={installing} onClick={startUpdate} style={{ flex:1, height:52, border:'none', borderRadius:14, background:'#2A6FDB', color:'#fff', fontSize:15.5, fontWeight:700, cursor:installing?'default':'pointer', opacity:installing?.7:1, boxShadow:'0 8px 22px rgba(42,111,219,.4)', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}><Icon.Download width="18" height="18" />{installing ? 'Installing…' : 'Update now'}</button>
             </div>
           </div>
         </div>
