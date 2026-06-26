@@ -14,7 +14,7 @@ const CONFIGURED = SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes
 const sb = CONFIGURED ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
 /* ===== App updates: set to your GitHub repo, e.g. "kane/job-tracker" ===== */
-const GITHUB_REPO = "OWNER/REPO";
+const GITHUB_REPO = "Dev-Oleksandr/job-tracker";
 /* ======================================================================== */
 
 // Parse "v1.2.3"/"1.2.3" → [1,2,3]; compare returns >0 if a is newer than b.
