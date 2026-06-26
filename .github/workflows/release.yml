@@ -48,8 +48,9 @@ jobs:
             echo "label=Job Tracker Dev"             >> "$GITHUB_OUTPUT"
             echo "tag=develop"                       >> "$GITHUB_OUTPUT"
             echo "prerelease=true"                   >> "$GITHUB_OUTPUT"
-            echo "relname=Job Tracker Dev (latest)"  >> "$GITHUB_OUTPUT"
-            echo "apk=JobTracker-dev-v$V.apk"        >> "$GITHUB_OUTPUT"
+            echo "relname=Job Tracker Dev v$V (latest)" >> "$GITHUB_OUTPUT"
+            # Stable filename → one permanent download link for the latest dev build.
+            echo "apk=JobTracker-dev.apk"             >> "$GITHUB_OUTPUT"
           else
             echo "channel=prod"                      >> "$GITHUB_OUTPUT"
             echo "appid=com.jobtracker.app"          >> "$GITHUB_OUTPUT"
@@ -64,12 +65,14 @@ jobs:
         run: |
           sed -i "s/versionCode .*/versionCode ${{ steps.cfg.outputs.code }}/" android/app/build.gradle
           sed -i "s/versionName \".*\"/versionName \"${{ steps.cfg.outputs.version }}\"/" android/app/build.gradle
+          # Stamp build identity into src/build.js — the in-app updater uses these
+          # (CHANNEL picks prod-vs-dev release; BUILD_ID detects a newer dev build).
+          sed -i "s/export const CHANNEL = 'prod';/export const CHANNEL = '${{ steps.cfg.outputs.channel }}';/" src/build.js
+          sed -i "s/export const BUILD_ID = 'local';/export const BUILD_ID = '${GITHUB_SHA}';/" src/build.js
           if [ "${{ steps.cfg.outputs.channel }}" = "dev" ]; then
             sed -i 's/applicationId "com.jobtracker.app"/applicationId "${{ steps.cfg.outputs.appid }}"/' android/app/build.gradle
             sed -i 's#<string name="app_name">Job Tracker</string>#<string name="app_name">${{ steps.cfg.outputs.label }}</string>#' android/app/src/main/res/values/strings.xml
             sed -i 's#<string name="title_activity_main">Job Tracker</string>#<string name="title_activity_main">${{ steps.cfg.outputs.label }}</string>#' android/app/src/main/res/values/strings.xml
-            # dev app has its own appId, so disable the in-app update banner (it points at prod releases)
-            sed -i 's#const GITHUB_REPO = "Dev-Oleksandr/job-tracker";#const GITHUB_REPO = "";#' src/App.jsx
           fi
 
       - run: npm ci
@@ -103,10 +106,23 @@ jobs:
           path: ${{ steps.cfg.outputs.apk }}
           if-no-files-found: error
 
+      - name: Build release notes
+        env:
+          CH: ${{ steps.cfg.outputs.channel }}
+        run: |
+          if [ "$CH" = "dev" ]; then
+            # The build marker lets installed dev apps detect a newer dev build.
+            printf 'Latest dev build.\n\n<!-- build:%s -->\n' "$GITHUB_SHA" > RELEASE_NOTES.md
+          else
+            printf "See the in-app changelog (Settings → What's new).\n" > RELEASE_NOTES.md
+          fi
+          cat RELEASE_NOTES.md
+
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.cfg.outputs.tag }}
           name: ${{ steps.cfg.outputs.relname }}
           prerelease: ${{ steps.cfg.outputs.prerelease }}
+          body_path: RELEASE_NOTES.md
           files: ${{ steps.cfg.outputs.apk }}

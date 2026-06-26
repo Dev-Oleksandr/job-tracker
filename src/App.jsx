@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { Browser } from '@capacitor/browser'
 import { registerPlugin, Capacitor } from '@capacitor/core'
 import { APP_VERSION } from './version'
+import { CHANNEL, BUILD_ID } from './build'
 
 // Native one-tap updater (Android): downloads the release APK and opens the
 // system installer. Falls back to opening the URL in a browser elsewhere.
@@ -26,11 +27,24 @@ const GITHUB_REPO = "Dev-Oleksandr/job-tracker";
 const parseSemver = (s) => String(s || '').replace(/^v/i, '').split('.').map(n => parseInt(n, 10) || 0);
 const cmpSemver = (a, b) => { for (let i = 0; i < 3; i++) { const d = (a[i] || 0) - (b[i] || 0); if (d) return d; } return 0; };
 
-// Checks GitHub Releases for a newer build. Releases are tagged vX.Y.Z; if the
-// latest tag is greater than this build's APP_VERSION, we prompt to update.
+// Checks GitHub Releases for a newer build.
+// - prod: the latest vX.Y.Z release; newer if its tag > this build's APP_VERSION.
+// - dev: the rolling "develop" prerelease; each dev build embeds its commit SHA
+//   (BUILD_ID) and publishes it in the release body as <!-- build:SHA -->. A
+//   different SHA means a newer dev build is available.
 async function checkForUpdate() {
   if (!GITHUB_REPO || GITHUB_REPO.includes("OWNER")) return null;
   try {
+    if (CHANNEL === 'dev') {
+      const r = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/tags/develop`, { headers: { Accept: 'application/vnd.github+json' } });
+      if (!r.ok) return null;
+      const rel = await r.json();
+      const m = /<!--\s*build:([0-9a-f]+)\s*-->/i.exec(rel.body || '');
+      const latest = m ? m[1] : '';
+      if (!latest || latest === BUILD_ID) return null; // already on the latest dev build
+      const apk = (rel.assets || []).find(a => a.name && a.name.endsWith('.apk'));
+      return { version: 'latest dev build', url: apk ? apk.browser_download_url : rel.html_url };
+    }
     const r = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, { headers: { Accept: 'application/vnd.github+json' } });
     if (!r.ok) return null;
     const rel = await r.json();
