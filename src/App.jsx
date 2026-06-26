@@ -122,6 +122,7 @@ const Icon = {
   Link:  (p) => <S {...p}><path d="M14 4h6v6M20 4l-9 9M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></S>,
   Copy:  (p) => <S {...p}><rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="M5 15V5a2 2 0 0 1 2-2h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></S>,
   Logout:(p) => <S {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></S>,
+  Download:(p) => <S {...p}><path d="M12 3v11M8 11l4 4 4-4M5 20h14" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"/></S>,
 };
 
 /* ================================ ROOT ================================ */
@@ -358,15 +359,6 @@ function App({ session }) {
   return (
     <div style={{ height:'100vh', display:'flex', flexDirection:'column', background:'#0F1115', color:'#ECEEF1', position:'relative', overflow:'hidden', maxWidth:480, margin:'0 auto', paddingTop:'env(safe-area-inset-top)', paddingBottom:'env(safe-area-inset-bottom)' }}>
 
-      {/* ===== UPDATE BANNER ===== */}
-      {update && !updDismissed && (
-        <div style={{ flex:'0 0 auto', display:'flex', alignItems:'center', gap:10, padding:'10px 14px', background:'rgba(42,111,219,.14)', borderBottom:'1px solid rgba(42,111,219,.35)' }}>
-          <span style={{ width:8, height:8, borderRadius:'50%', background:'#2A6FDB', flex:'0 0 auto' }} />
-          <div style={{ flex:1, fontSize:13, fontWeight:600, color:'#ECEEF1' }}>New version {update.version} available</div>
-          <button onClick={() => Browser.open({ url: update.url })} style={{ height:32, padding:'0 14px', borderRadius:9, border:'none', background:'#2A6FDB', color:'#fff', fontSize:13, fontWeight:700, cursor:'pointer' }}>Update</button>
-          <div onClick={() => setUpdDismissed(true)} style={{ cursor:'pointer', color:'#9BA1AC', padding:4, display:'flex' }}><Icon.Close width="16" height="16" /></div>
-        </div>
-      )}
 
       {/* ===== HOME ===== */}
       {screen === null && (
@@ -561,6 +553,23 @@ function App({ session }) {
             <div style={{ display:'flex', gap:12, marginTop:22 }}>
               <button onClick={() => setConfirmId(null)} style={{ flex:1, height:52, borderRadius:14, border:'1px solid #2C323C', background:'transparent', color:'#ECEEF1', fontSize:15, fontWeight:600, cursor:'pointer' }}>Keep</button>
               <button onClick={doDelete} style={{ flex:1, height:52, border:'none', borderRadius:14, background:'#E0685B', color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>Delete</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== UPDATE SHEET ===== */}
+      {update && !updDismissed && (
+        <div onClick={() => setUpdDismissed(true)} style={{ position:'absolute', inset:0, background:'rgba(8,9,12,.72)', display:'flex', alignItems:'flex-end', zIndex:40, animation:'jtFade .2s ease' }}>
+          <div onClick={(e)=>e.stopPropagation()} style={{ width:'100%', background:'#181B21', borderTop:'1px solid #262B33', borderRadius:'24px 24px 0 0', padding:'26px 22px calc(26px + env(safe-area-inset-bottom))', animation:'jtUp .28s ease' }}>
+            <div style={{ width:56, height:56, borderRadius:16, background:'rgba(42,111,219,.16)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:16 }}>
+              <Icon.Download width="28" height="28" style={{ color:'#7FA8EC' }} />
+            </div>
+            <div style={{ fontSize:20, fontWeight:700, letterSpacing:'-.2px' }}>Update available</div>
+            <div style={{ fontSize:14, color:'#9BA1AC', marginTop:8, lineHeight:1.5 }}>Version {update.version} is ready. Install it to get the latest features and fixes.</div>
+            <div style={{ display:'flex', gap:12, marginTop:24 }}>
+              <button onClick={() => setUpdDismissed(true)} style={{ flex:'0 0 auto', padding:'0 22px', height:52, borderRadius:14, border:'1px solid #2C323C', background:'transparent', color:'#ECEEF1', fontSize:15, fontWeight:600, cursor:'pointer' }}>Later</button>
+              <button onClick={() => Browser.open({ url: update.url })} style={{ flex:1, height:52, border:'none', borderRadius:14, background:'#2A6FDB', color:'#fff', fontSize:15.5, fontWeight:700, cursor:'pointer', boxShadow:'0 8px 22px rgba(42,111,219,.4)', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}><Icon.Download width="18" height="18" />Update now</button>
             </div>
           </div>
         </div>
