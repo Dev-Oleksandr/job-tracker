@@ -94,23 +94,21 @@ cp android/keystore.properties.example android/keystore.properties   # then fill
 
 ## Releasing updates (OTA via GitHub Releases)
 
-Versioning is **semver** (`major.minor.patch`). The current version lives in
-`src/version.js` and the Android `versionName`; the integer `versionCode` is
-derived as `major*10000 + minor*100 + patch`.
+`main` is the production branch. Versioning is **semver** (`major.minor.patch`),
+defined in `src/version.js` (`APP_VERSION`). The integer Android `versionCode`
+is derived as `major*10000 + minor*100 + patch`.
 
-To publish an update, push a tag:
+To ship a new version:
+1. Bump `APP_VERSION` in `src/version.js` (e.g. `1.0.1`).
+2. Commit and push to `main`.
 
-```bash
-git tag v1.0.1 && git push origin v1.0.1
-```
+On every push to `main`, the [release workflow](.github/workflows/release.yml):
+1. reads the version from `src/version.js` and stamps `build.gradle`,
+2. builds and **signs** the release APK,
+3. publishes / updates the GitHub Release `vX.Y.Z` (and uploads the APK as a run artifact).
 
-The [`Release APK`](.github/workflows/release.yml) GitHub Action then:
-1. stamps the version into `src/version.js` + `build.gradle`,
-2. builds and **signs** the APK,
-3. publishes a GitHub Release `v1.0.1` with the APK attached.
-
-On next launch, installed apps on older versions show an **"Update available"**
-banner that opens the new APK to install.
+On next launch, phones on an older version show an **"Update available"** banner
+that opens the new APK to install.
 
 ### Required GitHub secrets
 Set these in **Settings → Secrets and variables → Actions**:
