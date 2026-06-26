@@ -61,6 +61,24 @@ jobs:
             echo "apk=JobTracker-v$V.apk"            >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Build release notes from changelog
+        env:
+          V: ${{ steps.cfg.outputs.version }}
+          CH: ${{ steps.cfg.outputs.channel }}
+        run: |
+          node --input-type=module -e "
+            import fs from 'node:fs';
+            const m = await import('file://' + process.cwd() + '/src/changelog.js');
+            const e = (m.CHANGELOG || []).find(x => x.version === process.env.V);
+            const body = e ? e.changes.map(c => '- ' + c).join('\n') : 'See commit history.';
+            fs.writeFileSync('RELEASE_NOTES.md', body + '\n');
+          "
+          # Dev builds embed a build marker so installed dev apps can detect a newer build.
+          if [ "$CH" = "dev" ]; then
+            printf '\n<!-- build:%s -->\n' "$GITHUB_SHA" >> RELEASE_NOTES.md
+          fi
+          echo "----- RELEASE_NOTES.md -----"; cat RELEASE_NOTES.md
+
       - name: Apply version + channel to project
         run: |
           sed -i "s/versionCode .*/versionCode ${{ steps.cfg.outputs.code }}/" android/app/build.gradle
@@ -105,18 +123,6 @@ jobs:
           name: ${{ steps.cfg.outputs.apk }}
           path: ${{ steps.cfg.outputs.apk }}
           if-no-files-found: error
-
-      - name: Build release notes
-        env:
-          CH: ${{ steps.cfg.outputs.channel }}
-        run: |
-          if [ "$CH" = "dev" ]; then
-            # The build marker lets installed dev apps detect a newer dev build.
-            printf 'Latest dev build.\n\n<!-- build:%s -->\n' "$GITHUB_SHA" > RELEASE_NOTES.md
-          else
-            printf "See the in-app changelog (Settings → What's new).\n" > RELEASE_NOTES.md
-          fi
-          cat RELEASE_NOTES.md
 
       - name: Publish release
         uses: softprops/action-gh-release@v2

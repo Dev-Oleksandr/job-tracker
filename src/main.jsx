@@ -11,4 +11,7 @@ import '@fontsource/space-grotesk/500.css'
 import '@fontsource/space-grotesk/600.css'
 import '@fontsource/space-grotesk/700.css'
 
+// Apply the saved theme before first paint to avoid a flash.
+document.documentElement.dataset.theme = localStorage.getItem('jt_theme') || 'dark';
+
 createRoot(document.getElementById('root')).render(<Root />)

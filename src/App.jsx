@@ -4,6 +4,7 @@ import { Browser } from '@capacitor/browser'
 import { registerPlugin, Capacitor } from '@capacitor/core'
 import { APP_VERSION } from './version'
 import { CHANNEL, BUILD_ID } from './build'
+import { CHANGELOG } from './changelog'
 
 // Native one-tap updater (Android): downloads the release APK and opens the
 // system installer. Falls back to opening the URL in a browser elsewhere.
@@ -70,7 +71,7 @@ const SOURCES = [
   { id: 'dou',      label: 'DOU',      color: '#E8552D' },
   { id: 'linkedin', label: 'LinkedIn', color: '#3B82F6' },
   { id: 'telegram', label: 'Telegram', color: '#2AABEE' },
-  { id: 'other',    label: 'Other',    color: '#9BA1AC' },
+  { id: 'other',    label: 'Other',    color: 'var(--text-2)' },
 ];
 const srcMeta = (id) => SOURCES.find(s => s.id === id);
 const sourceLabel = (app) => {
@@ -79,8 +80,8 @@ const sourceLabel = (app) => {
   const m = srcMeta(app.source); return m ? m.label : '';
 };
 const sourceColor = (app) => {
-  if (!app || !app.source) return '#9BA1AC';
-  const m = srcMeta(app.source); return m ? m.color : '#9BA1AC';
+  if (!app || !app.source) return 'var(--text-2)';
+  const m = srcMeta(app.source); return m ? m.color : 'var(--text-2)';
 };
 
 const AVATAR_PALETTE = [
@@ -142,6 +143,9 @@ const Icon = {
   Copy:  (p) => <S {...p}><rect x="9" y="9" width="11" height="11" rx="2" stroke="currentColor" strokeWidth="1.8"/><path d="M5 15V5a2 2 0 0 1 2-2h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></S>,
   Logout:(p) => <S {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></S>,
   Download:(p) => <S {...p}><path d="M12 3v11M8 11l4 4 4-4M5 20h14" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"/></S>,
+  Sun:   (p) => <S {...p}><circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.8"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></S>,
+  Moon:  (p) => <S {...p}><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></S>,
+  Gear:  (p) => <S {...p}><circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8"/><path d="M19.4 13a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></S>,
 };
 
 /* ================================ ROOT ================================ */
@@ -163,7 +167,7 @@ export default function Root() {
 }
 
 const Center = ({ children }) => (
-  <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', color:'#9BA1AC', padding:24, textAlign:'center' }}>{children}</div>
+  <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-2)', padding:24, textAlign:'center' }}>{children}</div>
 );
 
 function ConfigNeeded() {
@@ -173,7 +177,7 @@ function ConfigNeeded() {
         <div style={{ width:52, height:52, borderRadius:15, background:'#2A6FDB', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}>
           <Icon.Bag width="26" height="26" style={{ color:'#fff' }} />
         </div>
-        <div style={{ color:'#ECEEF1', fontWeight:700, fontSize:18 }}>Setup needed</div>
+        <div style={{ color:'var(--text)', fontWeight:700, fontSize:18 }}>Setup needed</div>
         <p style={{ fontSize:14, marginTop:8 }}>Open <code>src/App.jsx</code> and set <b>SUPABASE_URL</b> and the <b>publishable</b> key.</p>
       </div>
     </Center>
@@ -207,8 +211,8 @@ function Login() {
     // success → onAuthStateChange swaps the screen
   }
 
-  const input = { width:'100%', height:52, borderRadius:13, border:'1px solid #262B33', background:'#181B21', color:'#ECEEF1', padding:'0 16px', fontSize:15, outline:'none' };
-  const label = { fontSize:12.5, fontWeight:600, color:'#9BA1AC', marginBottom:7, letterSpacing:'.2px' };
+  const input = { width:'100%', height:52, borderRadius:13, border:'1px solid var(--border-2)', background:'var(--surface)', color:'var(--text)', padding:'0 16px', fontSize:15, outline:'none' };
+  const label = { fontSize:12.5, fontWeight:600, color:'var(--text-2)', marginBottom:7, letterSpacing:'.2px' };
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', flexDirection:'column', justifyContent:'center', padding:'calc(env(safe-area-inset-top) + 8px) 32px calc(env(safe-area-inset-bottom) + 8px)', animation:'jtFade .4s ease', maxWidth:480, margin:'0 auto' }}>
@@ -218,7 +222,7 @@ function Login() {
       <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:30, fontWeight:700, letterSpacing:'-.5px', lineHeight:1.1 }}>
         {mode === 'signup' ? 'Create account' : 'Welcome back'}
       </div>
-      <div style={{ fontSize:15, color:'#9BA1AC', marginTop:8 }}>Track every application, in one place.</div>
+      <div style={{ fontSize:15, color:'var(--text-2)', marginTop:8 }}>Track every application, in one place.</div>
 
       {notice && (
         <div style={{ marginTop:24, padding:14, borderRadius:14, background:'rgba(47,179,124,.12)', color:'#7FE0BD', fontSize:13.5, lineHeight:1.45 }}>{notice}</div>
@@ -238,7 +242,7 @@ function Login() {
       <button onClick={submit} disabled={busy} style={{ marginTop:26, height:54, border:'none', borderRadius:14, background:'#2A6FDB', color:'#fff', fontSize:16, fontWeight:700, cursor:'pointer', boxShadow:'0 8px 22px rgba(42,111,219,.35)', opacity:busy?.6:1 }}>
         {busy ? 'Please wait…' : (mode === 'signup' ? 'Create account' : 'Sign in')}
       </button>
-      <div onClick={()=>{ setMode(m=>m==='signin'?'signup':'signin'); setErr(''); setNotice(''); }} style={{ textAlign:'center', marginTop:18, fontSize:13.5, color:'#6B7280', cursor:'pointer' }}>
+      <div onClick={()=>{ setMode(m=>m==='signin'?'signup':'signin'); setErr(''); setNotice(''); }} style={{ textAlign:'center', marginTop:18, fontSize:13.5, color:'var(--text-3)', cursor:'pointer' }}>
         {mode === 'signup'
           ? <>Already have an account? <span style={{ color:'#7FA8EC', fontWeight:600 }}>Sign in</span></>
           : <>New here? <span style={{ color:'#7FA8EC', fontWeight:600 }}>Create an account</span></>}
@@ -264,13 +268,27 @@ function App({ session }) {
   const [confirmId, setConfirmId] = useState(null);
   const [toast, setToast] = useState(null);
   const [hideSalary, setHideSalary] = useState(localStorage.getItem('jt_hideSalary') === '1');
-  const [menuOpen, setMenuOpen] = useState(false);
   const [update, setUpdate] = useState(null);
-  const [updDismissed, setUpdDismissed] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [checked, setChecked] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [dlPct, setDlPct] = useState(0);
+  const [theme, setTheme] = useState(() => document.documentElement.dataset.theme || 'dark');
   useEffect(() => { checkForUpdate().then(setUpdate); }, []);
   const toastT = useRef(null);
+
+  function toggleTheme() {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem('jt_theme', next);
+    setTheme(next);
+  }
+
+  async function runCheck() {
+    setChecking(true);
+    const u = await checkForUpdate();
+    setUpdate(u); setChecked(true); setChecking(false);
+  }
 
   // One-tap update on Android: download the APK and open the system installer.
   // Anywhere else (browser/preview) just open the release URL.
@@ -316,6 +334,26 @@ function App({ session }) {
   const counts = {}; STATUS.forEach(s => counts[s.id] = 0);
   apps.forEach(a => counts[a.status] = (counts[a.status] || 0) + 1);
   const total = apps.length;
+
+  // ---------- metrics (Insights) ----------
+  const reached = (a, ids) => ids.includes(a.status) || (a.history || []).some(h => ids.includes(h.status));
+  const inProgress = apps.filter(a => a.status !== 'rejected' && a.status !== 'offer').length;
+  const responded = apps.filter(a => reached(a, ['prescreen', 'testtask', 'interview', 'offer'])).length;
+  const interviewed = apps.filter(a => reached(a, ['interview', 'offer'])).length;
+  const offers = counts['offer'] || 0;
+  const rejected = counts['rejected'] || 0;
+  const pct = (n) => total ? Math.round(n / total * 100) : 0;
+  const sinceDays = (days) => { const t = Date.now(); return apps.filter(a => { if (!a.date) return false; const d = t - Date.parse(a.date); return d >= 0 && d <= days * 864e5; }).length; };
+  const thisWeek = sinceDays(7);
+  const thisMonth = sinceDays(30);
+  // Funnel: how many applications ever reached each stage (cumulative).
+  const funnel = [
+    { label: 'Applied',    color: '#3B82F6', n: total },
+    { label: 'Responded',  color: '#E0A23B', n: responded },
+    { label: 'Interview',  color: '#8B7CF6', n: interviewed },
+    { label: 'Offer',      color: '#2FB37C', n: offers },
+  ];
+
   const hasFilters = filters.length > 0;
   const filtered = apps
     .filter(a => !hasFilters || filters.includes(a.status))
@@ -399,7 +437,7 @@ function App({ session }) {
   const setF = (k, v) => setForm(s => ({ ...s, [k]: v }));
 
   return (
-    <div style={{ height:'100vh', display:'flex', flexDirection:'column', background:'#0F1115', color:'#ECEEF1', position:'relative', overflow:'hidden', maxWidth:480, margin:'0 auto', paddingTop:'env(safe-area-inset-top)', paddingBottom:'env(safe-area-inset-bottom)' }}>
+    <div style={{ height:'100vh', display:'flex', flexDirection:'column', background:'var(--bg)', color:'var(--text)', position:'relative', overflow:'hidden', maxWidth:480, margin:'0 auto', paddingTop:'env(safe-area-inset-top)', paddingBottom:'env(safe-area-inset-bottom)' }}>
 
 
       {/* ===== HOME ===== */}
@@ -409,29 +447,12 @@ function App({ session }) {
           <div style={{ padding:'14px 20px 12px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div>
               <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:25, fontWeight:700, letterSpacing:'-.4px' }}>{tab === 'stats' ? 'Insights' : 'Applications'}</div>
-              <div style={{ fontSize:13, color:'#9BA1AC', marginTop:2 }}>{tab === 'stats' ? 'Your search at a glance' : `${total} ${total === 1 ? 'application' : 'applications'} tracked`}</div>
+              <div style={{ fontSize:13, color:'var(--text-2)', marginTop:2 }}>{tab === 'stats' ? 'Your search at a glance' : `${total} ${total === 1 ? 'application' : 'applications'} tracked`}</div>
             </div>
             <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-              <div onClick={toggleSalary} title="Hide salaries"
-                style={{ width:40, height:40, borderRadius:12, background:hideSalary?'rgba(42,111,219,.14)':'#181B21', border:`1px solid ${hideSalary?'rgba(42,111,219,.45)':'#262B33'}`, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
-                {hideSalary ? <Icon.EyeOff width="19" height="19" style={{ color:'#7FA8EC' }} /> : <Icon.Eye width="19" height="19" style={{ color:'#9BA1AC' }} />}
-              </div>
-              <div style={{ position:'relative' }}>
-                <div onClick={() => setMenuOpen(o => !o)} title={session.user.email}
-                  style={{ width:40, height:40, borderRadius:'50%', background:menuOpen?'rgba(42,111,219,.14)':'#181B21', border:`1px solid ${menuOpen?'rgba(42,111,219,.45)':'#262B33'}`, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700, color:'#7FA8EC', fontSize:14, cursor:'pointer' }}>
-                  {(session.user.email?.[0] || 'Y').toUpperCase()}
-                </div>
-                {menuOpen && (
-                  <>
-                    <div onClick={() => setMenuOpen(false)} style={{ position:'fixed', inset:0, zIndex:40 }} />
-                    <div style={{ position:'absolute', right:0, top:48, zIndex:41, minWidth:210, background:'#1B1E25', border:'1px solid #2C323C', borderRadius:14, padding:6, boxShadow:'0 18px 44px rgba(0,0,0,.55)', animation:'jtPop .15s ease', transformOrigin:'top right' }}>
-                      <div style={{ padding:'10px 12px 11px', fontSize:12.5, color:'#9BA1AC', borderBottom:'1px solid #2C323C', marginBottom:4, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{session.user.email}</div>
-                      <div onClick={() => { setMenuOpen(false); sb.auth.signOut(); }} style={{ display:'flex', alignItems:'center', gap:10, padding:'11px 12px', borderRadius:10, cursor:'pointer', fontSize:14, fontWeight:600, color:'#E0685B' }}>
-                        <Icon.Logout width="17" height="17" />Log out
-                      </div>
-                    </div>
-                  </>
-                )}
+              <div onClick={() => setScreen('settings')} title="Settings"
+                style={{ width:40, height:40, borderRadius:'50%', background:'var(--surface)', border:'1px solid var(--border-2)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700, color:'#7FA8EC', fontSize:14, cursor:'pointer' }}>
+                {(session.user.email?.[0] || 'Y').toUpperCase()}
               </div>
             </div>
           </div>
@@ -441,37 +462,37 @@ function App({ session }) {
             <div className="jt-scroll" style={{ flex:1, overflowY:'auto', padding:'4px 16px 110px' }}>
               {/* filter */}
               <div style={{ position:'relative', padding:'4px 4px 12px', zIndex:10 }}>
-                <div onClick={() => setFilterOpen(o => !o)} style={{ height:44, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 14px', borderRadius:13, border:'1px solid #262B33', background:'#181B21', cursor:'pointer' }}>
+                <div onClick={() => setFilterOpen(o => !o)} style={{ height:44, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 14px', borderRadius:13, border:'1px solid var(--border-2)', background:'var(--surface)', cursor:'pointer' }}>
                   <div style={{ display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
-                    <Icon.Filter width="16" height="16" style={{ color:'#9BA1AC' }} />
-                    <span style={{ fontSize:14, fontWeight:600, color:hasFilters?'#ECEEF1':'#9BA1AC', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                    <Icon.Filter width="16" height="16" style={{ color:'var(--text-2)' }} />
+                    <span style={{ fontSize:14, fontWeight:600, color:hasFilters?'var(--text)':'var(--text-2)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                       {!hasFilters ? 'All statuses' : filters.length === 1 ? sMeta(filters[0]).label : `${filters.length} statuses selected`}
                     </span>
                   </div>
                   <div style={{ display:'flex', alignItems:'center', gap:9, flex:'0 0 auto' }}>
                     {hasFilters && <span style={{ fontSize:11, fontWeight:700, background:'#2A6FDB', color:'#fff', minWidth:20, height:20, padding:'0 6px', borderRadius:10, display:'flex', alignItems:'center', justifyContent:'center' }}>{filters.length}</span>}
-                    <Icon.Chevron width="18" height="18" style={{ color:'#9BA1AC', transform:filterOpen?'rotate(180deg)':'rotate(0deg)', transition:'transform .2s ease' }} />
+                    <Icon.Chevron width="18" height="18" style={{ color:'var(--text-2)', transform:filterOpen?'rotate(180deg)':'rotate(0deg)', transition:'transform .2s ease' }} />
                   </div>
                 </div>
                 {filterOpen && (
                   <>
                   <div onClick={() => setFilterOpen(false)} style={{ position:'fixed', inset:0, zIndex:20 }} />
-                  <div style={{ position:'absolute', left:4, right:4, top:52, zIndex:21, background:'#1B1E25', border:'1px solid #2C323C', borderRadius:14, padding:6, boxShadow:'0 18px 44px rgba(0,0,0,.55)', animation:'jtPop .15s ease', transformOrigin:'top' }}>
+                  <div style={{ position:'absolute', left:4, right:4, top:52, zIndex:21, background:'var(--popover)', border:'1px solid var(--border)', borderRadius:14, padding:6, boxShadow:'0 18px 44px rgba(0,0,0,.55)', animation:'jtPop .15s ease', transformOrigin:'top' }}>
                     {STATUS.map(s => {
                       const checked = filters.includes(s.id);
                       return (
                         <div key={s.id} onClick={() => setFilters(f => f.includes(s.id) ? f.filter(x => x !== s.id) : [...f, s.id])}
                           style={{ display:'flex', alignItems:'center', gap:11, padding:'11px 12px', borderRadius:10, cursor:'pointer', background:checked?'rgba(42,111,219,.10)':'transparent' }}>
-                          <div style={{ width:20, height:20, borderRadius:6, border:`2px solid ${checked?'#2A6FDB':'#3A414C'}`, background:checked?'#2A6FDB':'transparent', display:'flex', alignItems:'center', justifyContent:'center', flex:'0 0 auto' }}>
+                          <div style={{ width:20, height:20, borderRadius:6, border:`2px solid ${checked?'#2A6FDB':'var(--border-3)'}`, background:checked?'#2A6FDB':'transparent', display:'flex', alignItems:'center', justifyContent:'center', flex:'0 0 auto' }}>
                             {checked && <Icon.Check width="12" height="12" style={{ color:'#fff' }} />}
                           </div>
                           <span style={{ width:9, height:9, borderRadius:'50%', background:s.color }} />
-                          <span style={{ flex:1, fontSize:14, fontWeight:600, color:'#ECEEF1' }}>{s.label}</span>
-                          <span style={{ fontSize:13, color:'#6B7280' }}>{counts[s.id]}</span>
+                          <span style={{ flex:1, fontSize:14, fontWeight:600, color:'var(--text)' }}>{s.label}</span>
+                          <span style={{ fontSize:13, color:'var(--text-3)' }}>{counts[s.id]}</span>
                         </div>
                       );
                     })}
-                    <div onClick={() => { setFilters([]); setFilterOpen(false); }} style={{ marginTop:4, padding:12, textAlign:'center', fontSize:13, fontWeight:700, color:hasFilters?'#E0685B':'#6B7280', cursor:'pointer', borderTop:'1px solid #2C323C' }}>Clear filters</div>
+                    <div onClick={() => { setFilters([]); setFilterOpen(false); }} style={{ marginTop:4, padding:12, textAlign:'center', fontSize:13, fontWeight:700, color:hasFilters?'#E0685B':'var(--text-3)', cursor:'pointer', borderTop:'1px solid var(--border)' }}>Clear filters</div>
                   </div>
                   </>
                 )}
@@ -482,7 +503,7 @@ function App({ session }) {
                 {filtered.map(a => {
                   const m = sMeta(a.status); const [abg, acol] = avatar(a.company);
                   return (
-                    <div key={a.id} onClick={() => open(a.id)} style={{ background:'#181B21', border:'1px solid #20242C', borderRadius:16, padding:14, display:'flex', gap:13, alignItems:'center', cursor:'pointer', animation:'jtUp .3s ease both' }}>
+                    <div key={a.id} onClick={() => open(a.id)} style={{ background:'var(--surface)', border:'1px solid var(--surface-2)', borderRadius:16, padding:14, display:'flex', gap:13, alignItems:'center', cursor:'pointer', animation:'jtUp .3s ease both' }}>
                       <div style={{ width:46, height:46, flexShrink:0, borderRadius:13, background:abg, color:acol, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Space Grotesk',sans-serif", fontWeight:700, fontSize:18 }}>{(a.company[0] || '?').toUpperCase()}</div>
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:8 }}>
@@ -491,9 +512,9 @@ function App({ session }) {
                             <span style={{ width:6, height:6, borderRadius:'50%', background:m.color }} />{m.label}
                           </div>
                         </div>
-                        <div style={{ fontSize:13, color:'#9BA1AC', marginTop:3, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{a.role}</div>
-                        <div style={{ display:'flex', gap:14, marginTop:9, fontSize:12, color:'#6B7280' }}>
-                          <span style={{ color:'#B9BEC7', fontWeight:600 }}>{a.salary ? (hideSalary ? '••••' : a.salary) : '—'}</span>
+                        <div style={{ fontSize:13, color:'var(--text-2)', marginTop:3, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{a.role}</div>
+                        <div style={{ display:'flex', gap:14, marginTop:9, fontSize:12, color:'var(--text-3)' }}>
+                          <span style={{ color:'var(--text-2)', fontWeight:600 }}>{a.salary ? (hideSalary ? '••••' : a.salary) : '—'}</span>
                           <span>{fmtDate(a.date)}</span>
                         </div>
                       </div>
@@ -503,8 +524,8 @@ function App({ session }) {
               </div>
 
               {filtered.length === 0 && (
-                <div style={{ textAlign:'center', padding:'60px 20px', color:'#6B7280' }}>
-                  <div style={{ fontSize:15, fontWeight:600, color:'#9BA1AC' }}>Nothing here yet</div>
+                <div style={{ textAlign:'center', padding:'60px 20px', color:'var(--text-3)' }}>
+                  <div style={{ fontSize:15, fontWeight:600, color:'var(--text-2)' }}>Nothing here yet</div>
                   <div style={{ fontSize:13, marginTop:6 }}>{loading ? 'Loading…' : 'Tap + to add your first application.'}</div>
                 </div>
               )}
@@ -514,34 +535,89 @@ function App({ session }) {
           {/* STATS TAB */}
           {tab === 'stats' && (
             <div className="jt-scroll" style={{ flex:1, overflowY:'auto', padding:'4px 20px 110px', animation:'jtFade .3s ease' }}>
-              <div style={{ display:'flex', gap:12, marginBottom:18 }}>
-                <div style={{ flex:1, background:'#181B21', border:'1px solid #20242C', borderRadius:16, padding:16 }}>
-                  <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:34, fontWeight:700, lineHeight:1 }}>{total}</div>
-                  <div style={{ fontSize:12.5, color:'#9BA1AC', marginTop:6 }}>Total applications</div>
+              {total === 0 ? (
+                <div style={{ textAlign:'center', marginTop:80 }}>
+                  <div style={{ fontSize:16, fontWeight:700 }}>No insights yet</div>
+                  <div style={{ fontSize:13.5, color:'var(--text-2)', marginTop:8 }}>Add applications to see your stats.</div>
                 </div>
-                <div style={{ flex:1, background:'#181B21', border:'1px solid #20242C', borderRadius:16, padding:16 }}>
-                  <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:34, fontWeight:700, lineHeight:1, color:'#8B7CF6' }}>{apps.filter(a => a.status !== 'rejected' && a.status !== 'offer').length}</div>
-                  <div style={{ fontSize:12.5, color:'#9BA1AC', marginTop:6 }}>In progress</div>
-                </div>
-              </div>
-              <div style={{ fontSize:13, fontWeight:700, color:'#9BA1AC', letterSpacing:'.3px', marginBottom:12 }}>BY STATUS</div>
-              <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-                {STATUS.map(s => {
-                  const maxc = Math.max(1, ...STATUS.map(x => counts[x.id]));
-                  const pct = total ? Math.round(counts[s.id] / total * 100) : 0;
-                  return (
-                    <div key={s.id}>
-                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:7 }}>
-                        <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:13.5, fontWeight:600 }}><span style={{ width:9, height:9, borderRadius:'50%', background:s.color }} />{s.label}</div>
-                        <div style={{ fontSize:13, color:'#9BA1AC' }}><span style={{ color:'#ECEEF1', fontWeight:700, fontFamily:"'Space Grotesk',sans-serif" }}>{counts[s.id]}</span> · {pct}%</div>
-                      </div>
-                      <div style={{ height:8, borderRadius:5, background:'#20242C', overflow:'hidden' }}>
-                        <div style={{ height:'100%', width:`${counts[s.id] / maxc * 100}%`, background:s.color, borderRadius:5, transition:'width .4s ease' }} />
-                      </div>
+              ) : (
+                <>
+                  {/* hero */}
+                  <div style={{ display:'flex', gap:12, marginBottom:12 }}>
+                    <div style={{ flex:1, background:'var(--surface)', border:'1px solid var(--border-2)', borderRadius:16, padding:16 }}>
+                      <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:34, fontWeight:700, lineHeight:1 }}>{total}</div>
+                      <div style={{ fontSize:12.5, color:'var(--text-2)', marginTop:6 }}>Total applications</div>
                     </div>
-                  );
-                })}
-              </div>
+                    <div style={{ flex:1, background:'var(--surface)', border:'1px solid var(--border-2)', borderRadius:16, padding:16 }}>
+                      <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:34, fontWeight:700, lineHeight:1, color:'#8B7CF6' }}>{inProgress}</div>
+                      <div style={{ fontSize:12.5, color:'var(--text-2)', marginTop:6 }}>In progress</div>
+                    </div>
+                  </div>
+
+                  {/* metric chips */}
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:20 }}>
+                    {[
+                      { label:'Response rate', value:`${pct(responded)}%`, sub:`${responded} of ${total}`, color:'#E0A23B' },
+                      { label:'Offer rate',    value:`${pct(offers)}%`,    sub:`${offers} offer${offers===1?'':'s'}`, color:'#2FB37C' },
+                      { label:'Interviews',    value:interviewed,          sub:`${pct(interviewed)}% of all`, color:'#8B7CF6' },
+                      { label:'Rejected',      value:rejected,             sub:`${pct(rejected)}% of all`, color:'#E0685B' },
+                    ].map(m => (
+                      <div key={m.label} style={{ background:'var(--surface)', border:'1px solid var(--border-2)', borderRadius:14, padding:'13px 14px' }}>
+                        <div style={{ fontSize:11.5, fontWeight:700, color:'var(--text-2)', letterSpacing:'.2px', textTransform:'uppercase' }}>{m.label}</div>
+                        <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:26, fontWeight:700, lineHeight:1.1, marginTop:6, color:m.color }}>{m.value}</div>
+                        <div style={{ fontSize:11.5, color:'var(--text-3)', marginTop:3 }}>{m.sub}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* recent activity */}
+                  <div style={{ fontSize:13, fontWeight:700, color:'var(--text-2)', letterSpacing:'.3px', marginBottom:12 }}>RECENT ACTIVITY</div>
+                  <div style={{ display:'flex', gap:12, marginBottom:20 }}>
+                    {[{ label:'This week', n:thisWeek }, { label:'This month', n:thisMonth }].map(r => (
+                      <div key={r.label} style={{ flex:1, background:'var(--surface)', border:'1px solid var(--border-2)', borderRadius:14, padding:14, display:'flex', alignItems:'baseline', gap:8 }}>
+                        <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:24, fontWeight:700, color:'#2A6FDB' }}>{r.n}</div>
+                        <div style={{ fontSize:12.5, color:'var(--text-2)' }}>{r.label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* funnel */}
+                  <div style={{ fontSize:13, fontWeight:700, color:'var(--text-2)', letterSpacing:'.3px', marginBottom:12 }}>FUNNEL</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:20 }}>
+                    {funnel.map((f, i) => {
+                      const conv = i > 0 ? (funnel[i - 1].n ? Math.round(f.n / funnel[i - 1].n * 100) : 0) : null;
+                      return (
+                        <div key={f.label} style={{ background:'var(--surface)', border:'1px solid var(--border-2)', borderLeft:`3px solid ${f.color}`, borderRadius:14, padding:'13px 14px' }}>
+                          <div style={{ fontSize:11.5, fontWeight:700, color:'var(--text-2)', letterSpacing:'.2px', textTransform:'uppercase' }}>{f.label}</div>
+                          <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:26, fontWeight:700, lineHeight:1.1, marginTop:6, color:f.color }}>{f.n}</div>
+                          <div style={{ fontSize:11.5, color:'var(--text-3)', marginTop:3 }}>
+                            {pct(f.n)}% of total{conv !== null && ` · ${conv}% from prev`}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* by status */}
+                  <div style={{ fontSize:13, fontWeight:700, color:'var(--text-2)', letterSpacing:'.3px', marginBottom:12 }}>BY STATUS</div>
+                  <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+                    {STATUS.map(s => {
+                      const maxc = Math.max(1, ...STATUS.map(x => counts[x.id]));
+                      return (
+                        <div key={s.id}>
+                          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:7 }}>
+                            <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:13.5, fontWeight:600 }}><span style={{ width:9, height:9, borderRadius:'50%', background:s.color }} />{s.label}</div>
+                            <div style={{ fontSize:13, color:'var(--text-2)' }}><span style={{ color:'var(--text)', fontWeight:700, fontFamily:"'Space Grotesk',sans-serif" }}>{counts[s.id]}</span> · {pct(counts[s.id])}%</div>
+                          </div>
+                          <div style={{ height:8, borderRadius:5, background:'var(--surface-2)', overflow:'hidden' }}>
+                            <div style={{ height:'100%', width:`${counts[s.id] / maxc * 100}%`, background:s.color, borderRadius:5, transition:'width .4s ease' }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
           )}
 
@@ -551,11 +627,11 @@ function App({ session }) {
           </div>
 
           {/* BOTTOM NAV */}
-          <div style={{ flex:'0 0 auto', height:68, background:'#14171C', borderTop:'1px solid #20242C', display:'flex', alignItems:'stretch' }}>
-            <div onClick={() => setTab('list')} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:4, cursor:'pointer', color:tab==='list'?'#2A6FDB':'#6B7280' }}>
+          <div style={{ flex:'0 0 auto', height:68, background:'var(--bg-sunken)', borderTop:'1px solid var(--surface-2)', display:'flex', alignItems:'stretch' }}>
+            <div onClick={() => setTab('list')} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:4, cursor:'pointer', color:tab==='list'?'#2A6FDB':'var(--text-3)' }}>
               <Icon.List width="23" height="23" /><span style={{ fontSize:11, fontWeight:600 }}>Applications</span>
             </div>
-            <div onClick={() => setTab('stats')} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:4, cursor:'pointer', color:tab==='stats'?'#2A6FDB':'#6B7280' }}>
+            <div onClick={() => setTab('stats')} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:4, cursor:'pointer', color:tab==='stats'?'#2A6FDB':'var(--text-3)' }}>
               <Icon.Bars width="23" height="23" /><span style={{ fontSize:11, fontWeight:600 }}>Stats</span>
             </div>
           </div>
@@ -581,7 +657,7 @@ function App({ session }) {
 
       {/* ===== TOAST ===== */}
       {toast && (
-        <div style={{ position:'absolute', left:'50%', transform:'translateX(-50%)', bottom:96, zIndex:30, background:'#272D36', border:'1px solid #39414C', color:'#ECEEF1', fontSize:13.5, fontWeight:600, padding:'11px 18px', borderRadius:12, boxShadow:'0 10px 30px rgba(0,0,0,.5)', animation:'jtUp .2s ease', display:'flex', alignItems:'center', gap:9, whiteSpace:'nowrap' }}>
+        <div style={{ position:'absolute', left:'50%', transform:'translateX(-50%)', bottom:96, zIndex:30, background:'var(--toast)', border:'1px solid var(--border-3)', color:'var(--text)', fontSize:13.5, fontWeight:600, padding:'11px 18px', borderRadius:12, boxShadow:'0 10px 30px rgba(0,0,0,.5)', animation:'jtUp .2s ease', display:'flex', alignItems:'center', gap:9, whiteSpace:'nowrap' }}>
           <span style={{ width:7, height:7, borderRadius:'50%', background:'#2FB37C' }} />{toast}
         </div>
       )}
@@ -589,38 +665,153 @@ function App({ session }) {
       {/* ===== DELETE CONFIRM ===== */}
       {confirmId != null && (
         <div style={{ position:'absolute', inset:0, background:'rgba(8,9,12,.72)', display:'flex', alignItems:'flex-end', zIndex:20, animation:'jtFade .2s ease' }}>
-          <div style={{ width:'100%', background:'#181B21', borderTop:'1px solid #262B33', borderRadius:'24px 24px 0 0', padding:'24px 22px 26px', animation:'jtUp .25s ease' }}>
+          <div style={{ width:'100%', background:'var(--surface)', borderTop:'1px solid var(--border-2)', borderRadius:'24px 24px 0 0', padding:'24px 22px 26px', animation:'jtUp .25s ease' }}>
             <div style={{ fontSize:18, fontWeight:700 }}>Delete this application?</div>
-            <div style={{ fontSize:14, color:'#9BA1AC', marginTop:8, lineHeight:1.5 }}>{apps.find(a => a.id === confirmId)?.company} will be permanently removed. This can't be undone.</div>
+            <div style={{ fontSize:14, color:'var(--text-2)', marginTop:8, lineHeight:1.5 }}>{apps.find(a => a.id === confirmId)?.company} will be permanently removed. This can't be undone.</div>
             <div style={{ display:'flex', gap:12, marginTop:22 }}>
-              <button onClick={() => setConfirmId(null)} style={{ flex:1, height:52, borderRadius:14, border:'1px solid #2C323C', background:'transparent', color:'#ECEEF1', fontSize:15, fontWeight:600, cursor:'pointer' }}>Keep</button>
+              <button onClick={() => setConfirmId(null)} style={{ flex:1, height:52, borderRadius:14, border:'1px solid var(--border)', background:'transparent', color:'var(--text)', fontSize:15, fontWeight:600, cursor:'pointer' }}>Keep</button>
               <button onClick={doDelete} style={{ flex:1, height:52, border:'none', borderRadius:14, background:'#E0685B', color:'#fff', fontSize:15, fontWeight:700, cursor:'pointer' }}>Delete</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ===== UPDATE SHEET ===== */}
-      {update && !updDismissed && (
-        <div onClick={() => setUpdDismissed(true)} style={{ position:'absolute', inset:0, background:'rgba(8,9,12,.72)', display:'flex', alignItems:'flex-end', zIndex:40, animation:'jtFade .2s ease' }}>
-          <div onClick={(e)=>e.stopPropagation()} style={{ width:'100%', background:'#181B21', borderTop:'1px solid #262B33', borderRadius:'24px 24px 0 0', padding:'26px 22px calc(26px + env(safe-area-inset-bottom))', animation:'jtUp .28s ease' }}>
-            <div style={{ width:56, height:56, borderRadius:16, background:'rgba(42,111,219,.16)', display:'flex', alignItems:'center', justifyContent:'center', marginBottom:16 }}>
-              <Icon.Download width="28" height="28" style={{ color:'#7FA8EC' }} />
-            </div>
-            <div style={{ fontSize:20, fontWeight:700, letterSpacing:'-.2px' }}>Update available</div>
-            <div style={{ fontSize:14, color:'#9BA1AC', marginTop:8, lineHeight:1.5 }}>{installing ? `Downloading… ${dlPct}%` : `Version ${update.version} is ready. Install it to get the latest features and fixes.`}</div>
-            {installing && (
-              <div style={{ height:6, borderRadius:3, background:'#2C323C', marginTop:16, overflow:'hidden' }}>
-                <div style={{ height:'100%', width:`${dlPct}%`, background:'#2A6FDB', transition:'width .15s linear' }} />
+      {/* ===== SETTINGS ===== */}
+      {screen === 'settings' && (
+        <Settings onBack={back}
+          hideSalary={hideSalary} onToggleSalary={toggleSalary}
+          theme={theme} onToggleTheme={toggleTheme}
+          version={APP_VERSION} update={update} checking={checking} checked={checked}
+          installing={installing} dlPct={dlPct} onCheck={runCheck} onInstall={startUpdate}
+          onChangelog={() => setScreen('changelog')}
+          email={session.user.email} onLogout={() => sb.auth.signOut()} />
+      )}
+
+      {/* ===== CHANGELOG ===== */}
+      {screen === 'changelog' && (
+        <Changelog onBack={() => setScreen('settings')} current={APP_VERSION} />
+      )}
+    </div>
+  );
+}
+
+/* ============================== SETTINGS ============================== */
+function Settings({ onBack, hideSalary, onToggleSalary, theme, onToggleTheme, version, update, checking, checked, installing, dlPct, onCheck, onInstall, onChangelog, email, onLogout }) {
+  const Switch = ({ on, onClick }) => (
+    <div onClick={onClick} style={{ flex:'0 0 auto', width:48, height:28, borderRadius:14, background:on?'#2A6FDB':'var(--border-3)', position:'relative', cursor:'pointer', transition:'background .15s' }}>
+      <div style={{ position:'absolute', top:3, left:on?23:3, width:22, height:22, borderRadius:'50%', background:'#fff', transition:'left .15s', boxShadow:'0 1px 3px rgba(0,0,0,.3)' }} />
+    </div>
+  );
+  const Row = ({ icon, title, desc, children }) => (
+    <div style={{ display:'flex', alignItems:'center', gap:14, padding:'16px 18px' }}>
+      <div style={{ flex:'0 0 auto', width:38, height:38, borderRadius:11, background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-2)' }}>{icon}</div>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontSize:15, fontWeight:600 }}>{title}</div>
+        {desc && <div style={{ fontSize:12.5, color:'var(--text-2)', marginTop:2 }}>{desc}</div>}
+      </div>
+      {children}
+    </div>
+  );
+  const hasUpdate = !!update;
+  return (
+    <div style={{ position:'absolute', inset:0, zIndex:25, background:'var(--bg)', color:'var(--text)', display:'flex', flexDirection:'column', animation:'jtUp .22s ease', paddingTop:'env(safe-area-inset-top)', paddingBottom:'env(safe-area-inset-bottom)' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:14, padding:'14px 18px' }}>
+        <div onClick={onBack} style={{ width:40, height:40, borderRadius:12, border:'1px solid var(--border-2)', background:'var(--surface)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}><Icon.Back width="20" height="20" /></div>
+        <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:22, fontWeight:700, letterSpacing:'-.3px' }}>Settings</div>
+      </div>
+
+      <div className="jt-scroll" style={{ flex:1, overflowY:'auto', padding:'8px 16px 24px' }}>
+        <div style={{ background:'var(--surface)', border:'1px solid var(--border-2)', borderRadius:16, overflow:'hidden' }}>
+          <Row icon={hideSalary ? <Icon.EyeOff width="19" height="19" /> : <Icon.Eye width="19" height="19" />} title="Hide salaries" desc="Mask salary amounts across the app">
+            <Switch on={hideSalary} onClick={onToggleSalary} />
+          </Row>
+          <div style={{ height:1, background:'var(--border-2)', marginLeft:70 }} />
+          <Row icon={theme === 'dark' ? <Icon.Moon width="19" height="19" /> : <Icon.Sun width="19" height="19" />} title="Dark theme" desc={theme === 'dark' ? 'On' : 'Off'}>
+            <Switch on={theme === 'dark'} onClick={onToggleTheme} />
+          </Row>
+        </div>
+
+        <div style={{ marginTop:18, background:'var(--surface)', border:'1px solid var(--border-2)', borderRadius:16, padding:'18px' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+            <div style={{ flex:'0 0 auto', width:38, height:38, borderRadius:11, background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-2)' }}><Icon.Download width="19" height="19" /></div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:15, fontWeight:600 }}>App updates</div>
+              <div style={{ fontSize:12.5, color:'var(--text-2)', marginTop:2 }}>
+                {installing ? `Downloading… ${dlPct}%`
+                  : hasUpdate ? `Update available: ${update.version}`
+                  : checking ? 'Checking…'
+                  : checked ? `You're on the latest version (${version})`
+                  : `Current version ${version}`}
               </div>
-            )}
-            <div style={{ display:'flex', gap:12, marginTop:24 }}>
-              <button disabled={installing} onClick={() => setUpdDismissed(true)} style={{ flex:'0 0 auto', padding:'0 22px', height:52, borderRadius:14, border:'1px solid #2C323C', background:'transparent', color:'#ECEEF1', fontSize:15, fontWeight:600, cursor:installing?'default':'pointer', opacity:installing?.5:1 }}>Later</button>
-              <button disabled={installing} onClick={startUpdate} style={{ flex:1, height:52, border:'none', borderRadius:14, background:'#2A6FDB', color:'#fff', fontSize:15.5, fontWeight:700, cursor:installing?'default':'pointer', opacity:installing?.7:1, boxShadow:'0 8px 22px rgba(42,111,219,.4)', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}><Icon.Download width="18" height="18" />{installing ? 'Installing…' : 'Update now'}</button>
             </div>
           </div>
+          {installing && (
+            <div style={{ height:6, borderRadius:3, background:'var(--border)', marginTop:14, overflow:'hidden' }}>
+              <div style={{ height:'100%', width:`${dlPct}%`, background:'#2A6FDB', transition:'width .15s linear' }} />
+            </div>
+          )}
+          {hasUpdate ? (
+            <button disabled={installing} onClick={onInstall} style={{ width:'100%', height:50, marginTop:16, border:'none', borderRadius:13, background:'#2A6FDB', color:'#fff', fontSize:15, fontWeight:700, cursor:installing?'default':'pointer', opacity:installing?.7:1, display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}><Icon.Download width="18" height="18" />{installing ? 'Installing…' : 'Install update'}</button>
+          ) : (
+            <button disabled={checking} onClick={onCheck} style={{ width:'100%', height:50, marginTop:16, borderRadius:13, border:'1px solid var(--border)', background:'transparent', color:'var(--text)', fontSize:15, fontWeight:600, cursor:checking?'default':'pointer', opacity:checking?.6:1 }}>{checking ? 'Checking…' : 'Check for updates'}</button>
+          )}
         </div>
-      )}
+
+        <div style={{ marginTop:18, background:'var(--surface)', border:'1px solid var(--border-2)', borderRadius:16, overflow:'hidden' }}>
+          <div onClick={onChangelog} style={{ display:'flex', alignItems:'center', gap:14, padding:'16px 18px', cursor:'pointer' }}>
+            <div style={{ flex:'0 0 auto', width:38, height:38, borderRadius:11, background:'var(--surface-2)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-2)' }}><Icon.List width="19" height="19" /></div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:15, fontWeight:600 }}>What's new</div>
+              <div style={{ fontSize:12.5, color:'var(--text-2)', marginTop:2 }}>Changelog and version history</div>
+            </div>
+            <Icon.Chevron width="18" height="18" style={{ color:'var(--text-3)', transform:'rotate(-90deg)' }} />
+          </div>
+        </div>
+
+        <div style={{ marginTop:18, background:'var(--surface)', border:'1px solid var(--border-2)', borderRadius:16, overflow:'hidden' }}>
+          <div style={{ padding:'14px 18px', borderBottom:'1px solid var(--border-2)' }}>
+            <div style={{ fontSize:11.5, fontWeight:700, color:'var(--text-3)', letterSpacing:'.3px', textTransform:'uppercase' }}>Signed in as</div>
+            <div style={{ fontSize:14, fontWeight:600, marginTop:4, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{email}</div>
+          </div>
+          <div onClick={onLogout} style={{ display:'flex', alignItems:'center', gap:12, padding:'15px 18px', cursor:'pointer', color:'#E0685B', fontWeight:600, fontSize:14.5 }}>
+            <Icon.Logout width="18" height="18" />Log out
+          </div>
+        </div>
+
+        <div style={{ textAlign:'center', fontSize:12, color:'var(--text-3)', marginTop:22 }}>Job Tracker · v{version}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ============================== CHANGELOG ============================== */
+function Changelog({ onBack, current }) {
+  return (
+    <div style={{ position:'absolute', inset:0, zIndex:25, background:'var(--bg)', color:'var(--text)', display:'flex', flexDirection:'column', animation:'jtUp .22s ease', paddingTop:'env(safe-area-inset-top)', paddingBottom:'env(safe-area-inset-bottom)' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:14, padding:'14px 18px' }}>
+        <div onClick={onBack} style={{ width:40, height:40, borderRadius:12, border:'1px solid var(--border-2)', background:'var(--surface)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}><Icon.Back width="20" height="20" /></div>
+        <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:22, fontWeight:700, letterSpacing:'-.3px' }}>What's new</div>
+      </div>
+
+      <div className="jt-scroll" style={{ flex:1, overflowY:'auto', padding:'8px 18px 28px' }}>
+        {CHANGELOG.map(rel => (
+          <div key={rel.version} style={{ marginBottom:24 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
+              <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:18, fontWeight:700 }}>v{rel.version}</div>
+              {rel.version === current && <span style={{ fontSize:11, fontWeight:700, color:'#7FA8EC', background:'rgba(42,111,219,.14)', border:'1px solid rgba(42,111,219,.35)', padding:'2px 8px', borderRadius:8 }}>Current</span>}
+              <div style={{ fontSize:12.5, color:'var(--text-3)', marginLeft:'auto' }}>{rel.date}</div>
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              {rel.changes.map((c, i) => (
+                <div key={i} style={{ display:'flex', gap:10, fontSize:14, lineHeight:1.45, color:'var(--text-2)' }}>
+                  <span style={{ flex:'0 0 auto', width:6, height:6, borderRadius:'50%', background:'#2A6FDB', marginTop:7 }} />
+                  <span>{c}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -633,19 +824,19 @@ function Details({ sel, hideSalary, statusEditing, timelineEditing, onBack, onEd
   const canRemove = hist.length > 1;
 
   const fields = [];
-  fields.push({ label:'Date applied', value:fmtDate(sel.date), color:'#ECEEF1' });
+  fields.push({ label:'Date applied', value:fmtDate(sel.date), color:'var(--text)' });
   if (sel.source) fields.push({ label:'Source', value:sourceLabel(sel), color:sourceColor(sel) });
-  if (sel.salary) fields.push({ label:'Salary', value:hideSalary?'••••':sel.salary, color:'#ECEEF1' });
-  if (sel.contact) fields.push({ label:'Contact', value:sel.contact, color:'#ECEEF1', isContact:true, onTap:() => onTapContact(sel.contact) });
+  if (sel.salary) fields.push({ label:'Salary', value:hideSalary?'••••':sel.salary, color:'var(--text)' });
+  if (sel.contact) fields.push({ label:'Contact', value:sel.contact, color:'var(--text)', isContact:true, onTap:() => onTapContact(sel.contact) });
   if (sel.link) fields.push({ label:'Job link', value:sel.link.replace(/^https?:\/\//,''), color:'#7FA8EC', isLink:true, onTap:() => onOpenLink(sel.link) });
 
   return (
     <div style={{ flex:1, display:'flex', flexDirection:'column', minHeight:0, animation:'jtFade .25s ease' }}>
       <div style={{ padding:'12px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <div onClick={onBack} style={{ width:42, height:42, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}><Icon.Back width="24" height="24" style={{ color:'#ECEEF1' }} /></div>
+        <div onClick={onBack} style={{ width:42, height:42, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}><Icon.Back width="24" height="24" style={{ color:'var(--text)' }} /></div>
         <div style={{ display:'flex', gap:6 }}>
-          <div onClick={onEdit} style={{ height:38, padding:'0 16px', borderRadius:11, border:'1px solid #2C323C', background:'#181B21', display:'flex', alignItems:'center', gap:7, fontSize:13.5, fontWeight:600, cursor:'pointer' }}><Icon.Pencil width="15" height="15" style={{ color:'#ECEEF1' }} />Edit</div>
-          <div onClick={onAskDelete} style={{ width:38, height:38, borderRadius:11, border:'1px solid #3A2A2C', background:'#1E1618', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}><Icon.Trash width="16" height="16" style={{ color:'#E0685B' }} /></div>
+          <div onClick={onEdit} style={{ height:38, padding:'0 16px', borderRadius:11, border:'1px solid var(--border)', background:'var(--surface)', display:'flex', alignItems:'center', gap:7, fontSize:13.5, fontWeight:600, cursor:'pointer' }}><Icon.Pencil width="15" height="15" style={{ color:'var(--text)' }} />Edit</div>
+          <div onClick={onAskDelete} style={{ width:38, height:38, borderRadius:11, border:'1px solid rgba(224,104,91,.35)', background:'rgba(224,104,91,.12)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}><Icon.Trash width="16" height="16" style={{ color:'#E0685B' }} /></div>
         </div>
       </div>
 
@@ -654,12 +845,12 @@ function Details({ sel, hideSalary, statusEditing, timelineEditing, onBack, onEd
           <div style={{ width:58, height:58, flexShrink:0, borderRadius:16, background:abg, color:acol, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:"'Space Grotesk',sans-serif", fontWeight:700, fontSize:23 }}>{(sel.company[0]||'?').toUpperCase()}</div>
           <div style={{ minWidth:0 }}>
             <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:22, fontWeight:700, letterSpacing:'-.3px' }}>{sel.company}</div>
-            <div style={{ fontSize:14, color:'#9BA1AC', marginTop:2 }}>{sel.role}</div>
+            <div style={{ fontSize:14, color:'var(--text-2)', marginTop:2 }}>{sel.role}</div>
           </div>
         </div>
 
         {/* status */}
-        <div style={{ marginTop:22, fontSize:12.5, fontWeight:700, color:'#9BA1AC', letterSpacing:'.3px', marginBottom:10 }}>STATUS</div>
+        <div style={{ marginTop:22, fontSize:12.5, fontWeight:700, color:'var(--text-2)', letterSpacing:'.3px', marginBottom:10 }}>STATUS</div>
         <div onClick={onToggleStatusEdit} style={{ height:44, padding:'0 8px 0 14px', display:'inline-flex', alignItems:'center', gap:10, borderRadius:12, fontSize:14.5, fontWeight:700, background:hex(m.color,.14), color:m.color, cursor:'pointer', border:`1px solid ${hex(m.color, statusEditing?.55:.28)}` }}>
           <span style={{ width:8, height:8, borderRadius:'50%', background:m.color }} />{m.label}
           <span style={{ width:26, height:26, borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', background:hex(m.color,.16) }}>
@@ -667,13 +858,13 @@ function Details({ sel, hideSalary, statusEditing, timelineEditing, onBack, onEd
           </span>
         </div>
         {statusEditing && (
-          <div style={{ marginTop:10, background:'#181B21', border:'1px solid #2C323C', borderRadius:14, padding:12, animation:'jtPop .15s ease', transformOrigin:'top left' }}>
-            <div style={{ fontSize:12.5, color:'#9BA1AC', marginBottom:11 }}>Move this application to:</div>
+          <div style={{ marginTop:10, background:'var(--surface)', border:'1px solid var(--border)', borderRadius:14, padding:12, animation:'jtPop .15s ease', transformOrigin:'top left' }}>
+            <div style={{ fontSize:12.5, color:'var(--text-2)', marginBottom:11 }}>Move this application to:</div>
             <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
               {STATUS.map(s => {
                 const on = sel.status === s.id;
                 return (
-                  <div key={s.id} onClick={() => onChangeStatus(s.id)} style={{ height:36, padding:'0 14px', display:'flex', alignItems:'center', gap:7, borderRadius:10, fontSize:12.5, fontWeight:600, cursor:'pointer', border:`1px solid ${on?s.color:'#262B33'}`, background:on?hex(s.color,.16):'#181B21', color:on?'#ECEEF1':'#9BA1AC' }}>
+                  <div key={s.id} onClick={() => onChangeStatus(s.id)} style={{ height:36, padding:'0 14px', display:'flex', alignItems:'center', gap:7, borderRadius:10, fontSize:12.5, fontWeight:600, cursor:'pointer', border:`1px solid ${on?s.color:'var(--border-2)'}`, background:on?hex(s.color,.16):'var(--surface)', color:on?'var(--text)':'var(--text-2)' }}>
                     <span style={{ width:7, height:7, borderRadius:'50%', background:s.color }} />{s.label}
                   </div>
                 );
@@ -683,14 +874,14 @@ function Details({ sel, hideSalary, statusEditing, timelineEditing, onBack, onEd
         )}
 
         {/* fields */}
-        <div style={{ marginTop:24, background:'#181B21', border:'1px solid #20242C', borderRadius:16, overflow:'hidden' }}>
+        <div style={{ marginTop:24, background:'var(--surface)', border:'1px solid var(--surface-2)', borderRadius:16, overflow:'hidden' }}>
           {fields.map((f, i) => (
-            <div key={i} onClick={f.onTap} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, padding:'14px 16px', borderBottom:i<fields.length-1?'1px solid #20242C':'none', cursor:f.onTap?'pointer':'default' }}>
-              <div style={{ fontSize:13, color:'#9BA1AC', flex:'0 0 auto' }}>{f.label}</div>
+            <div key={i} onClick={f.onTap} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, padding:'14px 16px', borderBottom:i<fields.length-1?'1px solid var(--surface-2)':'none', cursor:f.onTap?'pointer':'default' }}>
+              <div style={{ fontSize:13, color:'var(--text-2)', flex:'0 0 auto' }}>{f.label}</div>
               <div style={{ display:'flex', alignItems:'center', gap:8, minWidth:0, justifyContent:'flex-end' }}>
                 <span style={{ fontSize:14, fontWeight:600, textAlign:'right', color:f.color, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{f.value}</span>
                 {f.isLink && <span style={{ flex:'0 0 auto', width:28, height:28, borderRadius:8, background:'rgba(42,111,219,.14)', display:'flex', alignItems:'center', justifyContent:'center' }}><Icon.Link width="14" height="14" style={{ color:'#7FA8EC' }} /></span>}
-                {f.isContact && <span style={{ flex:'0 0 auto', width:28, height:28, borderRadius:8, background:'#22272F', display:'flex', alignItems:'center', justifyContent:'center' }}><Icon.Copy width="14" height="14" style={{ color:'#9BA1AC' }} /></span>}
+                {f.isContact && <span style={{ flex:'0 0 auto', width:28, height:28, borderRadius:8, background:'var(--chip)', display:'flex', alignItems:'center', justifyContent:'center' }}><Icon.Copy width="14" height="14" style={{ color:'var(--text-2)' }} /></span>}
               </div>
             </div>
           ))}
@@ -699,16 +890,16 @@ function Details({ sel, hideSalary, statusEditing, timelineEditing, onBack, onEd
         {/* notes */}
         {sel.notes && sel.notes.trim() && (
           <div style={{ marginTop:18 }}>
-            <div style={{ fontSize:12.5, fontWeight:700, color:'#9BA1AC', letterSpacing:'.3px', marginBottom:9 }}>NOTES</div>
-            <div style={{ background:'#181B21', border:'1px solid #20242C', borderRadius:14, padding:'14px 16px', fontSize:14, lineHeight:1.55, color:'#C7CCD4' }}>{sel.notes}</div>
+            <div style={{ fontSize:12.5, fontWeight:700, color:'var(--text-2)', letterSpacing:'.3px', marginBottom:9 }}>NOTES</div>
+            <div style={{ background:'var(--surface)', border:'1px solid var(--surface-2)', borderRadius:14, padding:'14px 16px', fontSize:14, lineHeight:1.55, color:'var(--text-strong)' }}>{sel.notes}</div>
           </div>
         )}
 
         {/* timeline */}
         <div style={{ marginTop:22 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
-            <span style={{ fontSize:12.5, fontWeight:700, color:'#9BA1AC', letterSpacing:'.3px' }}>TIMELINE</span>
-            <div onClick={onToggleTimelineEdit} style={{ height:28, padding:'0 11px', display:'flex', alignItems:'center', gap:6, borderRadius:8, border:'1px solid #2C323C', background:'#181B21', fontSize:12, fontWeight:600, color:'#7FA8EC', cursor:'pointer' }}><Icon.Pencil width="12" height="12" style={{ color:'#7FA8EC' }} />{timelineEditing ? 'Done' : 'Edit'}</div>
+            <span style={{ fontSize:12.5, fontWeight:700, color:'var(--text-2)', letterSpacing:'.3px' }}>TIMELINE</span>
+            <div onClick={onToggleTimelineEdit} style={{ height:28, padding:'0 11px', display:'flex', alignItems:'center', gap:6, borderRadius:8, border:'1px solid var(--border)', background:'var(--surface)', fontSize:12, fontWeight:600, color:'#7FA8EC', cursor:'pointer' }}><Icon.Pencil width="12" height="12" style={{ color:'#7FA8EC' }} />{timelineEditing ? 'Done' : 'Edit'}</div>
           </div>
           <div style={{ display:'flex', flexDirection:'column' }}>
             {tl.map((h, i) => {
@@ -722,23 +913,23 @@ function Details({ sel, hideSalary, statusEditing, timelineEditing, onBack, onEd
               return (
                 <div key={origIndex} style={{ display:'flex', gap:14 }}>
                   <div style={{ display:'flex', flexDirection:'column', alignItems:'center', flex:'0 0 auto', paddingTop:2 }}>
-                    <div style={{ width:14, height:14, borderRadius:'50%', background:isCurrent?hm.color:'#14171C', border:`2px solid ${hm.color}`, boxShadow:isCurrent?`0 0 0 4px ${hex(hm.color,.22)}`:'none' }} />
-                    <div style={{ flex:1, width:2, background:last?'transparent':'#262B33', minHeight:last?0:(timelineEditing?40:16) }} />
+                    <div style={{ width:14, height:14, borderRadius:'50%', background:isCurrent?hm.color:'var(--bg-sunken)', border:`2px solid ${hm.color}`, boxShadow:isCurrent?`0 0 0 4px ${hex(hm.color,.22)}`:'none' }} />
+                    <div style={{ flex:1, width:2, background:last?'transparent':'var(--border-2)', minHeight:last?0:(timelineEditing?40:16) }} />
                   </div>
                   <div style={{ paddingBottom:20, flex:1 }}>
                     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                      <span style={{ fontSize:14.5, fontWeight:700, color:isCurrent?'#ECEEF1':'#C7CCD4' }}>{hm.label}</span>
+                      <span style={{ fontSize:14.5, fontWeight:700, color:isCurrent?'var(--text)':'var(--text-strong)' }}>{hm.label}</span>
                       {isCurrent && <span style={{ fontSize:10, fontWeight:700, letterSpacing:'.4px', color:hm.color, background:hex(hm.color,.22), padding:'2px 7px', borderRadius:6 }}>CURRENT</span>}
                     </div>
                     {!timelineEditing ? (
                       <div style={{ display:'flex', alignItems:'center', gap:9, marginTop:3 }}>
-                        <span style={{ fontSize:12.5, color:'#6B7280' }}>{fmtDate(h.date)}</span>
-                        {dur && <span style={{ fontSize:12, color:'#8A919C', fontWeight:600 }}>{dur}</span>}
+                        <span style={{ fontSize:12.5, color:'var(--text-3)' }}>{fmtDate(h.date)}</span>
+                        {dur && <span style={{ fontSize:12, color:'var(--text-3)', fontWeight:600 }}>{dur}</span>}
                       </div>
                     ) : (
                       <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:8 }}>
-                        <input type="date" value={h.date} onChange={(e) => onHistoryDate(origIndex, e.target.value)} style={{ flex:1, minWidth:0, height:40, borderRadius:10, border:'1px solid #2C323C', background:'#14171C', color:'#ECEEF1', padding:'0 12px', fontSize:13, outline:'none', colorScheme:'dark' }} />
-                        {canRemove && <div onClick={() => onHistoryRemove(origIndex)} title="Remove" style={{ width:40, height:40, flex:'0 0 auto', borderRadius:10, border:'1px solid #3A2A2C', background:'#1E1618', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}><Icon.Trash width="15" height="15" style={{ color:'#E0685B' }} /></div>}
+                        <input type="date" value={h.date} onChange={(e) => onHistoryDate(origIndex, e.target.value)} style={{ flex:1, minWidth:0, height:40, borderRadius:10, border:'1px solid var(--border)', background:'var(--bg-sunken)', color:'var(--text)', padding:'0 12px', fontSize:13, outline:'none', colorScheme:'var(--scheme)' }} />
+                        {canRemove && <div onClick={() => onHistoryRemove(origIndex)} title="Remove" style={{ width:40, height:40, flex:'0 0 auto', borderRadius:10, border:'1px solid rgba(224,104,91,.35)', background:'rgba(224,104,91,.12)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}><Icon.Trash width="15" height="15" style={{ color:'#E0685B' }} /></div>}
                       </div>
                     )}
                   </div>
@@ -754,14 +945,14 @@ function Details({ sel, hideSalary, statusEditing, timelineEditing, onBack, onEd
 
 /* =============================== FORM =============================== */
 function Form({ mode, form, setF, error, onCancel, onSave, onSource, onSourceOther }) {
-  const input = { width:'100%', height:50, borderRadius:13, border:'1px solid #262B33', background:'#181B21', color:'#ECEEF1', padding:'0 15px', fontSize:15, outline:'none' };
-  const label = { fontSize:12.5, fontWeight:600, color:'#9BA1AC', marginBottom:7 };
-  const chip = (on, color) => ({ height:36, padding:'0 13px', display:'flex', alignItems:'center', gap:7, borderRadius:11, fontSize:12.5, fontWeight:600, cursor:'pointer', border:`1px solid ${on?color:'#262B33'}`, background:on?hex(color,.16):'#181B21', color:on?'#ECEEF1':'#9BA1AC' });
+  const input = { width:'100%', height:50, borderRadius:13, border:'1px solid var(--border-2)', background:'var(--surface)', color:'var(--text)', padding:'0 15px', fontSize:15, outline:'none' };
+  const label = { fontSize:12.5, fontWeight:600, color:'var(--text-2)', marginBottom:7 };
+  const chip = (on, color) => ({ height:36, padding:'0 13px', display:'flex', alignItems:'center', gap:7, borderRadius:11, fontSize:12.5, fontWeight:600, cursor:'pointer', border:`1px solid ${on?color:'var(--border-2)'}`, background:on?hex(color,.16):'var(--surface)', color:on?'var(--text)':'var(--text-2)' });
 
   return (
     <div style={{ flex:1, display:'flex', flexDirection:'column', minHeight:0, animation:'jtUp .25s ease' }}>
       <div style={{ padding:'12px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <div onClick={onCancel} style={{ width:42, height:42, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}><Icon.Close width="22" height="22" style={{ color:'#ECEEF1' }} /></div>
+        <div onClick={onCancel} style={{ width:42, height:42, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}><Icon.Close width="22" height="22" style={{ color:'var(--text)' }} /></div>
         <div style={{ fontSize:16, fontWeight:700 }}>{mode === 'edit' ? 'Edit application' : 'New application'}</div>
         <div style={{ width:42 }} />
       </div>
@@ -789,14 +980,14 @@ function Form({ mode, form, setF, error, onCancel, onSave, onSource, onSourceOth
           {form.source === 'other' && (
             <div style={{ position:'relative', marginTop:10 }}>
               <input value={form.sourceOther} maxLength={30} onChange={(e)=>onSourceOther(e.target.value)} placeholder="Name the source…" style={{ ...input, padding:'0 58px 0 15px' }} />
-              <span style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', fontSize:11.5, color:'#6B7280', fontWeight:600 }}>{(form.sourceOther || '').length}/30</span>
+              <span style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)', fontSize:11.5, color:'var(--text-3)', fontWeight:600 }}>{(form.sourceOther || '').length}/30</span>
             </div>
           )}
         </div>
 
         <div style={{ display:'flex', gap:12 }}>
           <div style={{ flex:1 }}><div style={label}>Salary</div><input value={form.salary} onChange={(e)=>setF('salary',e.target.value)} placeholder="$160k" style={input} /></div>
-          <div style={{ flex:1 }}><div style={label}>Date applied</div><input type="date" value={form.date} onChange={(e)=>setF('date',e.target.value)} style={{ ...input, fontSize:14, colorScheme:'dark' }} /></div>
+          <div style={{ flex:1 }}><div style={label}>Date applied</div><input type="date" value={form.date} onChange={(e)=>setF('date',e.target.value)} style={{ ...input, fontSize:14, colorScheme:'var(--scheme)' }} /></div>
         </div>
 
         <div><div style={label}>Contact person</div><input value={form.contact} onChange={(e)=>setF('contact',e.target.value)} placeholder="e.g. Dana Whitfield · Recruiter" style={input} /></div>
@@ -806,8 +997,8 @@ function Form({ mode, form, setF, error, onCancel, onSave, onSource, onSourceOth
         {error && <div style={{ fontSize:13, color:'#E0685B', fontWeight:600 }}>Company and role are required.</div>}
       </div>
 
-      <div style={{ flex:'0 0 auto', padding:'14px 20px', borderTop:'1px solid #20242C', background:'#14171C', display:'flex', gap:12 }}>
-        <button onClick={onCancel} style={{ flex:'0 0 auto', padding:'0 22px', height:52, borderRadius:14, border:'1px solid #2C323C', background:'transparent', color:'#ECEEF1', fontSize:15, fontWeight:600, cursor:'pointer' }}>Cancel</button>
+      <div style={{ flex:'0 0 auto', padding:'14px 20px', borderTop:'1px solid var(--surface-2)', background:'var(--bg-sunken)', display:'flex', gap:12 }}>
+        <button onClick={onCancel} style={{ flex:'0 0 auto', padding:'0 22px', height:52, borderRadius:14, border:'1px solid var(--border)', background:'transparent', color:'var(--text)', fontSize:15, fontWeight:600, cursor:'pointer' }}>Cancel</button>
         <button onClick={onSave} style={{ flex:1, height:52, border:'none', borderRadius:14, background:'#2A6FDB', color:'#fff', fontSize:15.5, fontWeight:700, cursor:'pointer' }}>{mode === 'edit' ? 'Save changes' : 'Add application'}</button>
       </div>
     </div>

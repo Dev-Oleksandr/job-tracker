@@ -1,10 +1,47 @@
-:root { color-scheme: dark; }
+/* Theme tokens. Dark is the default; [data-theme="light"] overrides it.
+   Only neutral surfaces/text/borders flip — brand & status accents are shared. */
+:root {
+  --scheme: dark;
+  --bg: #0F1115;
+  --surface: #181B21;
+  --bg-sunken: #14171C;
+  --popover: #1B1E25;
+  --surface-2: #20242C;
+  --toast: #272D36;
+  --chip: #22272F;
+  --text: #ECEEF1;
+  --text-2: #9BA1AC;
+  --text-3: #6B7280;
+  --text-strong: #C7CCD4;
+  --border: #2C323C;
+  --border-2: #262B33;
+  --border-3: #3A414C;
+}
+:root[data-theme="light"] {
+  --scheme: light;
+  --bg: #F4F5F7;
+  --surface: #FFFFFF;
+  --bg-sunken: #ECEEF2;
+  --popover: #FFFFFF;
+  --surface-2: #EDEFF3;
+  --toast: #FFFFFF;
+  --chip: #EAECF0;
+  --text: #14171C;
+  --text-2: #5C636E;
+  --text-3: #8A919C;
+  --text-strong: #2A2F37;
+  --border: #E2E5EA;
+  --border-2: #E8EAEE;
+  --border-3: #D2D7DE;
+}
+
+:root { color-scheme: var(--scheme); }
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
 body {
   margin: 0;
-  background: #0F1115;
-  color: #ECEEF1;
+  background: var(--bg);
+  color: var(--text);
   font-family: 'Manrope', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
