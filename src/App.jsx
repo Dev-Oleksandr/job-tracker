@@ -167,18 +167,23 @@ function Login() {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
-  const [sent, setSent] = useState(false);
+  const [notice, setNotice] = useState('');
 
   async function submit() {
     if (!email.trim() || !password) { setErr('Email and password are required.'); return; }
-    setBusy(true); setErr('');
+    setBusy(true); setErr(''); setNotice('');
     const creds = { email: email.trim(), password };
     const { data, error } = mode === 'signup'
       ? await sb.auth.signUp(creds)
       : await sb.auth.signInWithPassword(creds);
     setBusy(false);
     if (error) { setErr(error.message); return; }
-    if (mode === 'signup' && !data.session) { setSent(true); return; }
+    if (mode === 'signup' && !data.session) {
+      // email confirmation is on — go back to the sign-in form with a note (no dead-end)
+      setNotice('Confirmation email sent. Confirm your address, then sign in.');
+      setMode('signin');
+      return;
+    }
     // success → onAuthStateChange swaps the screen
   }
 
@@ -195,34 +200,29 @@ function Login() {
       </div>
       <div style={{ fontSize:15, color:'#9BA1AC', marginTop:8 }}>Track every application, in one place.</div>
 
-      {sent ? (
-        <div style={{ marginTop:28, padding:16, borderRadius:14, background:'rgba(47,179,124,.12)', color:'#7FE0BD', fontSize:14 }}>
-          Check your email to confirm your address, then sign in.
-        </div>
-      ) : (
-        <>
-          <div style={{ marginTop:36, display:'flex', flexDirection:'column', gap:14 }}>
-            <div>
-              <div style={label}>Email</div>
-              <input type="email" value={email} autoComplete="email" onChange={(e)=>setEmail(e.target.value)} placeholder="you@email.com" style={input} />
-            </div>
-            <div>
-              <div style={label}>Password</div>
-              <input type="password" value={password} autoComplete={mode==='signup'?'new-password':'current-password'}
-                onChange={(e)=>setPassword(e.target.value)} onKeyDown={(e)=>e.key==='Enter'&&submit()} placeholder="••••••••" style={input} />
-            </div>
-          </div>
-          {err && <div style={{ marginTop:14, fontSize:13, color:'#E0685B', fontWeight:600 }}>{err}</div>}
-          <button onClick={submit} disabled={busy} style={{ marginTop:26, height:54, border:'none', borderRadius:14, background:'#2A6FDB', color:'#fff', fontSize:16, fontWeight:700, cursor:'pointer', boxShadow:'0 8px 22px rgba(42,111,219,.35)', opacity:busy?.6:1 }}>
-            {busy ? 'Please wait…' : (mode === 'signup' ? 'Create account' : 'Sign in')}
-          </button>
-          <div onClick={()=>{ setMode(m=>m==='signin'?'signup':'signin'); setErr(''); }} style={{ textAlign:'center', marginTop:18, fontSize:13.5, color:'#6B7280', cursor:'pointer' }}>
-            {mode === 'signup'
-              ? <>Already have an account? <span style={{ color:'#7FA8EC', fontWeight:600 }}>Sign in</span></>
-              : <>New here? <span style={{ color:'#7FA8EC', fontWeight:600 }}>Create an account</span></>}
-          </div>
-        </>
+      {notice && (
+        <div style={{ marginTop:24, padding:14, borderRadius:14, background:'rgba(47,179,124,.12)', color:'#7FE0BD', fontSize:13.5, lineHeight:1.45 }}>{notice}</div>
       )}
+      <div style={{ marginTop: notice ? 16 : 36, display:'flex', flexDirection:'column', gap:14 }}>
+        <div>
+          <div style={label}>Email</div>
+          <input type="email" value={email} autoComplete="email" onChange={(e)=>setEmail(e.target.value)} placeholder="you@email.com" style={input} />
+        </div>
+        <div>
+          <div style={label}>Password</div>
+          <input type="password" value={password} autoComplete={mode==='signup'?'new-password':'current-password'}
+            onChange={(e)=>setPassword(e.target.value)} onKeyDown={(e)=>e.key==='Enter'&&submit()} placeholder="••••••••" style={input} />
+        </div>
+      </div>
+      {err && <div style={{ marginTop:14, fontSize:13, color:'#E0685B', fontWeight:600 }}>{err}</div>}
+      <button onClick={submit} disabled={busy} style={{ marginTop:26, height:54, border:'none', borderRadius:14, background:'#2A6FDB', color:'#fff', fontSize:16, fontWeight:700, cursor:'pointer', boxShadow:'0 8px 22px rgba(42,111,219,.35)', opacity:busy?.6:1 }}>
+        {busy ? 'Please wait…' : (mode === 'signup' ? 'Create account' : 'Sign in')}
+      </button>
+      <div onClick={()=>{ setMode(m=>m==='signin'?'signup':'signin'); setErr(''); setNotice(''); }} style={{ textAlign:'center', marginTop:18, fontSize:13.5, color:'#6B7280', cursor:'pointer' }}>
+        {mode === 'signup'
+          ? <>Already have an account? <span style={{ color:'#7FA8EC', fontWeight:600 }}>Sign in</span></>
+          : <>New here? <span style={{ color:'#7FA8EC', fontWeight:600 }}>Create an account</span></>}
+      </div>
     </div>
   );
 }
