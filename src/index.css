@@ -1,0 +1,18 @@
+:root { color-scheme: dark; }
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: #0F1115;
+  color: #ECEEF1;
+  font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+input, textarea, button { font-family: inherit; }
+
+@keyframes jtUp   { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+@keyframes jtPop  { from { opacity:0; transform:scale(.96); }       to { opacity:1; transform:scale(1); } }
+@keyframes jtFade { from { opacity:0; }                              to { opacity:1; } }
+
+.jt-scroll::-webkit-scrollbar { width: 0; height: 0; }
+.jt-scroll { -ms-overflow-style: none; scrollbar-width: none; }

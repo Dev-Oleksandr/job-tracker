@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Job Tracker</title>
+<meta name="theme-color" content="#7c3aed" />
+<link rel="manifest" href="./manifest.webmanifest" />
+<link rel="apple-touch-icon" href="./icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Jobs" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style> html,body,#root{height:100%} body{margin:0} </style>
+</head>
+<body class="bg-slate-50">
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+/* ====================== CONFIG — впиши свои значения ====================== */
+const SUPABASE_URL = "https://YOUR-PROJECT.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR-ANON-KEY";
+/* ========================================================================= */
+
+const CONFIGURED = !SUPABASE_URL.includes("YOUR-PROJECT") && !SUPABASE_ANON_KEY.includes("YOUR-ANON");
+const sb = CONFIGURED ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+/* ---- icons (lucide-style inline svg) ---- */
+const Svg = (p) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p} />;
+const Ico = {
+  Search: (p) => <Svg {...p}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></Svg>,
+  X: (p) => <Svg {...p}><path d="M18 6 6 18M6 6l12 12"/></Svg>,
+  Trash: (p) => <Svg {...p}><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></Svg>,
+  Link: (p) => <Svg {...p}><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></Svg>,
+  Calendar: (p) => <Svg {...p}><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></Svg>,
+  Bell: (p) => <Svg {...p}><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"/></Svg>,
+  Right: (p) => <Svg {...p}><path d="m9 18 6-6-6-6"/></Svg>,
+  Left: (p) => <Svg {...p}><path d="m15 18-6-6 6-6"/></Svg>,
+  Down: (p) => <Svg {...p}><path d="m6 9 6 6 6-6"/></Svg>,
+  Filter: (p) => <Svg {...p}><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></Svg>,
+  Check: (p) => <Svg {...p}><path d="M20 6 9 17l-5-5"/></Svg>,
+  Plus: (p) => <Svg {...p}><path d="M5 12h14M12 5v14"/></Svg>,
+  Bag: (p) => <Svg {...p}><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></Svg>,
+  Logout: (p) => <Svg {...p}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></Svg>,
+};
+
+const STATUSES = {
+  wishlist:  { dot: 'bg-slate-400',   chip: 'bg-slate-100 text-slate-700',     funnel: true },
+  applied:   { dot: 'bg-blue-500',    chip: 'bg-blue-100 text-blue-700',       funnel: true },
+  screening: { dot: 'bg-indigo-500',  chip: 'bg-indigo-100 text-indigo-700',   funnel: true },
+  tech:      { dot: 'bg-violet-500',  chip: 'bg-violet-100 text-violet-700',   funnel: true },
+  final:     { dot: 'bg-amber-500',   chip: 'bg-amber-100 text-amber-800',     funnel: true },
+  offer:     { dot: 'bg-emerald-500', chip: 'bg-emerald-100 text-emerald-700', funnel: true },
+  rejected:  { dot: 'bg-rose-500',    chip: 'bg-rose-100 text-rose-700',       funnel: false },
+  ghosted:   { dot: 'bg-zinc-400',    chip: 'bg-zinc-100 text-zinc-600',       funnel: false },
+};
+const ORDER = ['wishlist','applied','screening','tech','final','offer','rejected','ghosted'];
+const FUNNEL = ['wishlist','applied','screening','tech','final','offer'];
+const SOURCES = ['Djinni','DOU','LinkedIn','Telegram'];
+const LANGS = [['ru','RU'],['ua','UA'],['en','EN']];
+
+const I18N = {
+  ru: { title:'Трекер откликов', total:'всего', inWork:'в работе', searchPh:'Поиск по компании, роли, источнику', loading:'Загружаю…',
+    filter:'Фильтр', findStatus:'Найти статус', reset:'Сбросить', back:'назад', next:'дальше', remind:'напомнить',
+    emptyNone:'Пока пусто', emptyNoneSub:'Добавь первый отклик — и веди воронку по этапам.', emptyFound:'Ничего не нашлось', emptyFoundSub:'Сбрось фильтр или поиск.',
+    addApp:'Добавить отклик', newApp:'Новый отклик', editApp:'Редактировать', company:'Компания', position:'Должность', statusLabel:'Статус',
+    source:'Источник', other:'Другое', sourcePh:'Откуда отклик? (Work.ua, реферал, сайт компании…)', salary:'Вилка', dateApplied:'Дата отклика',
+    followUp:'Напомнить о фоллоу-апе', followUpHint:'Когда написать ещё раз, если ответа нет. В этот день карточка подсветится «напомнить».',
+    link:'Ссылка', contact:'Контакт / рекрутер', notes:'Заметки', notesPh:'Что обсудили, на чём срезался, что подтянуть…',
+    save:'Сохранить', add:'Добавить', confirmDel:'Точно удалить?',
+    signInTitle:'Вход', signInSub:'Пришлём ссылку для входа на почту — без пароля.', emailPh:'you@email.com', sendLink:'Прислать ссылку',
+    linkSent:'Проверь почту — там ссылка для входа.', signOut:'Выйти', sending:'Отправляю…',
+    status:{ wishlist:'Хочу подать', applied:'Отклик', screening:'Скрининг', tech:'Тех. интервью', final:'Финал', offer:'Оффер', rejected:'Отказ', ghosted:'Тишина' } },
+  ua: { title:'Трекер відгуків', total:'усього', inWork:'в роботі', searchPh:'Пошук за компанією, роллю, джерелом', loading:'Завантажую…',
+    filter:'Фільтр', findStatus:'Знайти статус', reset:'Скинути', back:'назад', next:'далі', remind:'нагадати',
+    emptyNone:'Поки порожньо', emptyNoneSub:'Додай перший відгук — і веди воронку за етапами.', emptyFound:'Нічого не знайшлося', emptyFoundSub:'Скинь фільтр або пошук.',
+    addApp:'Додати відгук', newApp:'Новий відгук', editApp:'Редагувати', company:'Компанія', position:'Посада', statusLabel:'Статус',
+    source:'Джерело', other:'Інше', sourcePh:'Звідки відгук? (Work.ua, реферал, сайт компанії…)', salary:'Вилка', dateApplied:'Дата відгуку',
+    followUp:'Нагадати про фоллоу-ап', followUpHint:'Коли написати ще раз, якщо відповіді немає. Того дня картка підсвітиться «нагадати».',
+    link:'Посилання', contact:'Контакт / рекрутер', notes:'Нотатки', notesPh:'Що обговорили, на чому зрізався, що підтягнути…',
+    save:'Зберегти', add:'Додати', confirmDel:'Точно видалити?',
+    signInTitle:'Вхід', signInSub:'Надішлемо посилання для входу на пошту — без пароля.', emailPh:'you@email.com', sendLink:'Надіслати посилання',
+    linkSent:'Перевір пошту — там посилання для входу.', signOut:'Вийти', sending:'Надсилаю…',
+    status:{ wishlist:'Хочу подати', applied:'Відгук', screening:'Скринінг', tech:'Тех. інтервʼю', final:'Фінал', offer:'Офер', rejected:'Відмова', ghosted:'Тиша' } },
+  en: { title:'Application tracker', total:'total', inWork:'in progress', searchPh:'Search company, role, source', loading:'Loading…',
+    filter:'Filter', findStatus:'Find status', reset:'Reset', back:'back', next:'next', remind:'follow up',
+    emptyNone:'Nothing here yet', emptyNoneSub:'Add your first application and track the pipeline by stage.', emptyFound:'Nothing found', emptyFoundSub:'Clear the filter or search.',
+    addApp:'Add application', newApp:'New application', editApp:'Edit', company:'Company', position:'Position', statusLabel:'Status',
+    source:'Source', other:'Other', sourcePh:'Where from? (Work.ua, referral, company site…)', salary:'Salary', dateApplied:'Date applied',
+    followUp:'Follow-up reminder', followUpHint:"When to nudge again if there's no reply. That day the card highlights “follow up”.",
+    link:'Link', contact:'Contact / recruiter', notes:'Notes', notesPh:'What you discussed, where you slipped, what to brush up…',
+    save:'Save', add:'Add', confirmDel:'Delete for sure?',
+    signInTitle:'Sign in', signInSub:"We'll email you a magic link — no password.", emailPh:'you@email.com', sendLink:'Send link',
+    linkSent:'Check your email for the sign-in link.', signOut:'Sign out', sending:'Sending…',
+    status:{ wishlist:'To apply', applied:'Applied', screening:'Screening', tech:'Tech interview', final:'Final', offer:'Offer', rejected:'Rejected', ghosted:'Ghosted' } },
+};
+
+const todayStr = () => new Date().toISOString().slice(0,10);
+const isDue = (s) => !!s && s <= todayStr();
+const fmtDate = (s, lang) => { if(!s) return ''; const loc={ru:'ru-RU',ua:'uk-UA',en:'en-US'}[lang]||'ru-RU'; return new Date(s+'T00:00:00').toLocaleDateString(loc,{day:'numeric',month:'short'}); };
+const emptyDraft = () => ({ company:'', position:'', status:'applied', source:'', salary:'', link:'', contact:'', followUp:'', notes:'', dateApplied:todayStr() });
+
+const fromDb = (r) => ({ id:r.id, company:r.company||'', position:r.position||'', status:r.status||'applied', source:r.source||'', salary:r.salary||'',
+  link:r.link||'', contact:r.contact||'', notes:r.notes||'', dateApplied:r.date_applied||'', followUp:r.follow_up||'', updatedAt:r.updated_at?Date.parse(r.updated_at):0 });
+const toDb = (d) => ({ company:d.company, position:d.position, status:d.status, source:d.source, salary:d.salary, link:d.link, contact:d.contact,
+  notes:d.notes, date_applied:d.dateApplied||null, follow_up:d.followUp||null, updated_at:new Date().toISOString() });
+
+/* =============================== ROOT =============================== */
+function Root() {
+  const [lang, setLang] = useState(localStorage.getItem('neojobs_lang') || 'ru');
+  useEffect(() => localStorage.setItem('neojobs_lang', lang), [lang]);
+  const t = I18N[lang];
+  const [session, setSession] = useState(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (!CONFIGURED) { setReady(true); return; }
+    sb.auth.getSession().then(({ data }) => { setSession(data.session); setReady(true); });
+    const { data: sub } = sb.auth.onAuthStateChange((_e, s) => setSession(s));
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  if (!CONFIGURED) return <ConfigNeeded />;
+  if (!ready) return <Center><p className="text-slate-400">{t.loading}</p></Center>;
+  if (!session) return <SignIn t={t} lang={lang} setLang={setLang} />;
+  return <App session={session} t={t} lang={lang} setLang={setLang} />;
+}
+
+const Center = ({ children }) => (
+  <div className="min-h-screen flex items-center justify-center p-6 text-center">{children}</div>
+);
+
+function ConfigNeeded() {
+  return (
+    <Center>
+      <div className="max-w-sm">
+        <div className="w-12 h-12 mx-auto rounded-2xl bg-violet-100 flex items-center justify-center"><Ico.Bag className="w-6 h-6 text-violet-500" /></div>
+        <h1 className="mt-3 font-bold text-lg">Нужна настройка</h1>
+        <p className="mt-2 text-sm text-slate-500">Открой <code className="bg-slate-100 px-1 rounded">index.html</code> и впиши <b>SUPABASE_URL</b> и <b>SUPABASE_ANON_KEY</b> из своего проекта Supabase (Project Settings → API). Инструкция — в README.md.</p>
+      </div>
+    </Center>
+  );
+}
+
+function LangSwitch({ lang, setLang }) {
+  return (
+    <div className="flex items-center gap-0.5 bg-slate-100 rounded-lg p-0.5">
+      {LANGS.map(([code, lbl]) => (
+        <button key={code} onClick={() => setLang(code)}
+          className={`text-[11px] font-medium px-2 py-1 rounded-md transition ${lang===code?'bg-white text-slate-900 shadow-sm':'text-slate-400'}`}>{lbl}</button>
+      ))}
+    </div>
+  );
+}
+
+function SignIn({ t, lang, setLang }) {
+  const [email, setEmail] = useState('');
+  const [state, setState] = useState('idle'); // idle | sending | sent | error
+  const [err, setErr] = useState('');
+  async function send() {
+    if (!email.trim()) return;
+    setState('sending'); setErr('');
+    const { error } = await sb.auth.signInWithOtp({ email: email.trim(), options: { emailRedirectTo: window.location.href } });
+    if (error) { setState('error'); setErr(error.message); } else setState('sent');
+  }
+  return (
+    <div className="min-h-screen flex flex-col">
+      <div className="flex justify-end p-4"><LangSwitch lang={lang} setLang={setLang} /></div>
+      <div className="flex-1 flex items-center justify-center px-6">
+        <div className="w-full max-w-sm">
+          <div className="w-14 h-14 rounded-2xl bg-violet-600 flex items-center justify-center"><Ico.Bag className="w-7 h-7 text-white" /></div>
+          <h1 className="mt-4 text-2xl font-bold">{t.signInTitle}</h1>
+          <p className="mt-1 text-sm text-slate-500">{t.signInSub}</p>
+          {state === 'sent' ? (
+            <div className="mt-5 p-4 rounded-2xl bg-emerald-50 text-emerald-800 text-sm">{t.linkSent}</div>
+          ) : (
+            <div className="mt-5 space-y-3">
+              <input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder={t.emailPh}
+                onKeyDown={(e)=>e.key==='Enter'&&send()}
+                className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
+              <button onClick={send} disabled={state==='sending'||!email.trim()}
+                className="w-full py-3 rounded-xl bg-violet-600 text-white font-semibold hover:bg-violet-700 disabled:opacity-40">
+                {state==='sending' ? t.sending : t.sendLink}
+              </button>
+              {state==='error' && <p className="text-sm text-rose-600">{err}</p>}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* =============================== APP =============================== */
+function App({ session, t, lang, setLang }) {
+  const label = (k) => t.status[k];
+  const [apps, setApps] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState([]);
+  const [query, setQuery] = useState('');
+  const [editingId, setEditingId] = useState(undefined);
+  const [draft, setDraft] = useState(emptyDraft());
+  const [confirmDel, setConfirmDel] = useState(false);
+
+  async function reload() {
+    const { data, error } = await sb.from('applications').select('*').order('updated_at', { ascending: false });
+    if (!error && data) setApps(data.map(fromDb));
+    else if (error) console.error(error);
+  }
+  useEffect(() => { (async () => { await reload(); setLoading(false); })(); }, []);
+
+  const counts = ORDER.reduce((acc, k) => ((acc[k] = apps.filter((a)=>a.status===k).length), acc), {});
+  const activeCount = apps.filter((a) => STATUSES[a.status].funnel && a.status!=='offer').length;
+  const visible = apps
+    .filter((a) => (selected.length===0 ? true : selected.includes(a.status)))
+    .filter((a) => { if(!query.trim()) return true; const q=query.toLowerCase(); return (a.company+' '+a.position+' '+a.source).toLowerCase().includes(q); })
+    .sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0));
+
+  const modalOpen = editingId===null || typeof editingId==='string';
+  const openNew = () => { setEditingId(null); setDraft(emptyDraft()); setConfirmDel(false); };
+  const openEdit = (a) => { setEditingId(a.id); setDraft({ ...emptyDraft(), ...a }); setConfirmDel(false); };
+  const closeModal = () => { setEditingId(undefined); setConfirmDel(false); };
+  const field = (k, v) => setDraft((d) => ({ ...d, [k]: v }));
+
+  async function save() {
+    if (!draft.company.trim()) return;
+    if (editingId) {
+      const patch = toDb(draft);
+      setApps((p)=>p.map((a)=>a.id===editingId?{...a,...draft,updatedAt:Date.now()}:a));
+      closeModal();
+      const { error } = await sb.from('applications').update(patch).eq('id', editingId);
+      if (error) { console.error(error); reload(); }
+    } else {
+      const ins = { ...toDb(draft), user_id: session.user.id };
+      closeModal();
+      const { data, error } = await sb.from('applications').insert(ins).select().single();
+      if (error) { console.error(error); return; }
+      setApps((p)=>[fromDb(data), ...p]);
+    }
+  }
+  async function remove() {
+    const id = editingId;
+    setApps((p)=>p.filter((a)=>a.id!==id)); closeModal();
+    const { error } = await sb.from('applications').delete().eq('id', id);
+    if (error) { console.error(error); reload(); }
+  }
+  async function move(a, dir) {
+    const i=FUNNEL.indexOf(a.status), j=i+dir;
+    if (i<0 || j<0 || j>=FUNNEL.length) return;
+    const status = FUNNEL[j];
+    setApps((p)=>p.map((x)=>x.id===a.id?{...x,status,updatedAt:Date.now()}:x));
+    const { error } = await sb.from('applications').update({ status, updated_at:new Date().toISOString() }).eq('id', a.id);
+    if (error) { console.error(error); reload(); }
+  }
+
+  return (
+    <div className="min-h-screen w-full bg-slate-50 text-slate-900 flex justify-center">
+      <div className="w-full max-w-md flex flex-col min-h-screen relative">
+        <header className="px-4 pt-4 pb-3 sticky top-0 z-10 bg-slate-50/95 backdrop-blur border-b border-slate-200">
+          <div className="flex items-center justify-between">
+            <p className="text-[11px] font-mono uppercase tracking-widest text-slate-400">job search</p>
+            <div className="flex items-center gap-2">
+              <LangSwitch lang={lang} setLang={setLang} />
+              <button onClick={()=>sb.auth.signOut()} title={session.user.email}
+                className="w-8 h-8 flex items-center justify-center rounded-lg bg-slate-100 text-slate-400 hover:text-slate-700"><Ico.Logout className="w-4 h-4" /></button>
+            </div>
+          </div>
+          <div className="mt-1 flex items-end justify-between">
+            <h1 className="text-2xl font-bold tracking-tight">{t.title}</h1>
+            <div className="text-right">
+              <p className="text-2xl font-bold font-mono leading-none">{apps.length}</p>
+              <p className="text-[11px] text-slate-400">{t.total} · {activeCount} {t.inWork}</p>
+            </div>
+          </div>
+          <div className="mt-3 relative">
+            <Ico.Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input value={query} onChange={(e)=>setQuery(e.target.value)} placeholder={t.searchPh}
+              className="w-full pl-9 pr-3 py-2 rounded-xl bg-white border border-slate-200 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
+          </div>
+          <div className="mt-3"><StatusFilter selected={selected} setSelected={setSelected} counts={counts} t={t} label={label} /></div>
+        </header>
+
+        <main className="flex-1 px-4 py-3 pb-28">
+          {loading ? <p className="text-center text-sm text-slate-400 mt-16">{t.loading}</p>
+          : visible.length===0 ? <EmptyState hasAny={apps.length>0} onAdd={openNew} t={t} />
+          : <div className="space-y-2.5">
+              {visible.map((a) => {
+                const st=STATUSES[a.status], due=isDue(a.followUp), i=FUNNEL.indexOf(a.status);
+                const canBack=i>0, canFwd=i>=0&&i<FUNNEL.length-1;
+                return (
+                  <div key={a.id} className="bg-white rounded-2xl border border-slate-200 p-3.5">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1 min-w-0 cursor-pointer" onClick={()=>openEdit(a)}>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-0.5 rounded-full ${st.chip}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />{label(a.status)}
+                          </span>
+                          {due && <span className="inline-flex items-center gap-1 text-[11px] text-amber-700 font-medium"><Ico.Bell className="w-3 h-3" />{t.remind}</span>}
+                        </div>
+                        <h3 className="mt-1.5 font-semibold leading-tight truncate">{a.company}</h3>
+                        {a.position && <p className="text-sm text-slate-500 truncate">{a.position}</p>}
+                        <div className="mt-1.5 flex items-center gap-3 text-[11px] text-slate-400 font-mono">
+                          {a.dateApplied && <span className="inline-flex items-center gap-1"><Ico.Calendar className="w-3 h-3" />{fmtDate(a.dateApplied, lang)}</span>}
+                          {a.source && <span className="truncate">{a.source}</span>}
+                          {a.salary && <span className="text-emerald-600">{a.salary}</span>}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-2 shrink-0">
+                        {a.link && <a href={a.link} target="_blank" rel="noreferrer" className="text-slate-300 hover:text-violet-500" onClick={(e)=>e.stopPropagation()}><Ico.Link className="w-4 h-4" /></a>}
+                        {(canBack||canFwd) && (
+                          <div className="flex items-center gap-1">
+                            {canBack && <button onClick={()=>move(a,-1)} title={t.back} className="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200"><Ico.Left className="w-4 h-4" /></button>}
+                            {canFwd && <button onClick={()=>move(a,1)} className="text-[11px] font-medium text-violet-600 inline-flex items-center gap-0.5 pl-2 pr-1.5 h-7 rounded-lg bg-violet-50 hover:bg-violet-100">{t.next}<Ico.Right className="w-3 h-3" /></button>}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>}
+        </main>
+
+        <button onClick={openNew} aria-label={t.addApp}
+          className="fixed bottom-6 right-4 sm:right-[calc(50%-13rem)] z-20 w-14 h-14 rounded-full bg-violet-600 hover:bg-violet-700 text-white shadow-lg shadow-violet-300 flex items-center justify-center active:scale-95 transition"><Ico.Plus className="w-6 h-6" /></button>
+
+        {modalOpen && (
+          <div className="fixed inset-0 z-30 flex items-end sm:items-center justify-center">
+            <div className="absolute inset-0 bg-slate-900/40" onClick={closeModal} />
+            <div className="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                <h2 className="font-semibold flex items-center gap-2"><Ico.Bag className="w-4 h-4 text-violet-500" />{editingId?t.editApp:t.newApp}</h2>
+                <button onClick={closeModal} className="p-1.5 rounded-lg hover:bg-slate-100"><Ico.X className="w-5 h-5 text-slate-500" /></button>
+              </div>
+              <div className="p-4 space-y-4">
+                <Input label={t.company} value={draft.company} onChange={(v)=>field('company',v)} placeholder="Kyrrex" autoFocus />
+                <Input label={t.position} value={draft.position} onChange={(v)=>field('position',v)} placeholder="Senior Backend Engineer" />
+                <div>
+                  <Label>{t.statusLabel}</Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {ORDER.map((k)=>(
+                      <button key={k} onClick={()=>field('status',k)}
+                        className={`text-xs px-2.5 py-1.5 rounded-full border transition ${draft.status===k?STATUSES[k].chip+' border-transparent font-medium ring-2 ring-offset-1 ring-violet-200':'bg-white text-slate-500 border-slate-200'}`}>{label(k)}</button>
+                    ))}
+                  </div>
+                </div>
+                <SourceField key={editingId ?? 'new'} value={draft.source} onChange={(v)=>field('source',v)} t={t} />
+                <div className="grid grid-cols-2 gap-3">
+                  <Input label={t.salary} value={draft.salary} onChange={(v)=>field('salary',v)} placeholder="$5–6k" />
+                  <Input type="date" label={t.dateApplied} value={draft.dateApplied} onChange={(v)=>field('dateApplied',v)} />
+                </div>
+                <div>
+                  <Input type="date" label={t.followUp} value={draft.followUp} onChange={(v)=>field('followUp',v)} />
+                  <p className="mt-1 text-[11px] text-slate-400">{t.followUpHint}</p>
+                </div>
+                <Input label={t.link} value={draft.link} onChange={(v)=>field('link',v)} placeholder="https://…" />
+                <Input label={t.contact} value={draft.contact} onChange={(v)=>field('contact',v)} placeholder="@recruiter" />
+                <div>
+                  <Label>{t.notes}</Label>
+                  <textarea value={draft.notes} onChange={(e)=>field('notes',e.target.value)} rows={3} placeholder={t.notesPh}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 resize-none" />
+                </div>
+              </div>
+              <div className="sticky bottom-0 bg-white px-4 py-3 border-t border-slate-100 flex items-center gap-2">
+                {editingId && (confirmDel
+                  ? <button onClick={remove} className="px-3 py-2.5 rounded-xl bg-rose-600 text-white text-sm font-medium flex items-center gap-1.5"><Ico.Trash className="w-4 h-4" />{t.confirmDel}</button>
+                  : <button onClick={()=>setConfirmDel(true)} className="p-2.5 rounded-xl text-rose-500 hover:bg-rose-50"><Ico.Trash className="w-5 h-5" /></button>)}
+                <button onClick={save} disabled={!draft.company.trim()}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-violet-600 text-white text-sm font-semibold hover:bg-violet-700 disabled:opacity-40 disabled:cursor-not-allowed">{editingId?t.save:t.add}</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function StatusFilter({ selected, setSelected, counts, t, label }) {
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState('');
+  const toggle = (k) => setSelected(selected.includes(k)?selected.filter((x)=>x!==k):[...selected,k]);
+  const list = ORDER.filter((k)=>label(k).toLowerCase().includes(q.toLowerCase()));
+  return (
+    <div className="relative">
+      <button onClick={()=>setOpen((o)=>!o)}
+        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-medium border transition ${selected.length?'bg-slate-900 text-white border-slate-900':'bg-white text-slate-600 border-slate-200'}`}>
+        <Ico.Filter className="w-4 h-4" />{t.filter}{selected.length?` · ${selected.length}`:''}<Ico.Down className={`w-4 h-4 transition ${open?'rotate-180':''}`} />
+      </button>
+      {selected.length>0 && (
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {selected.map((k)=>(
+            <span key={k} className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-1 rounded-full ${STATUSES[k].chip}`}>{label(k)}<button onClick={()=>toggle(k)}><Ico.X className="w-3 h-3" /></button></span>
+          ))}
+        </div>
+      )}
+      {open && (
+        <React.Fragment>
+          <div className="fixed inset-0 z-20" onClick={()=>setOpen(false)} />
+          <div className="absolute z-30 mt-2 w-64 bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
+            <div className="p-2 border-b border-slate-100">
+              <input value={q} onChange={(e)=>setQ(e.target.value)} placeholder={t.findStatus} autoFocus
+                className="w-full px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-sm outline-none focus:border-violet-400" />
+            </div>
+            <div className="max-h-64 overflow-y-auto py-1">
+              {list.map((k)=>{ const on=selected.includes(k); return (
+                <button key={k} onClick={()=>toggle(k)} className="w-full flex items-center gap-2.5 px-3 py-2 hover:bg-slate-50 text-sm">
+                  <span className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${on?'bg-violet-600 border-violet-600':'border-slate-300'}`}>{on && <Ico.Check className="w-3 h-3 text-white" />}</span>
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${STATUSES[k].dot}`} />
+                  <span className="flex-1 text-left text-slate-700">{label(k)}</span>
+                  <span className="font-mono text-xs text-slate-400">{counts[k]}</span>
+                </button>
+              ); })}
+            </div>
+            {selected.length>0 && <div className="p-2 border-t border-slate-100"><button onClick={()=>setSelected([])} className="w-full text-sm text-slate-500 hover:text-slate-900 py-1.5 rounded-lg hover:bg-slate-50">{t.reset}</button></div>}
+          </div>
+        </React.Fragment>
+      )}
+    </div>
+  );
+}
+
+function SourceField({ value, onChange, t }) {
+  const [custom, setCustom] = useState(!SOURCES.includes(value) && !!value);
+  const pill = (a) => `text-xs px-3 py-1.5 rounded-full border transition ${a?'bg-violet-600 text-white border-violet-600 font-medium':'bg-white text-slate-500 border-slate-200'}`;
+  return (
+    <div>
+      <Label>{t.source}</Label>
+      <div className="flex flex-wrap gap-1.5">
+        {SOURCES.map((s)=>(<button key={s} onClick={()=>{setCustom(false);onChange(s);}} className={pill(!custom&&value===s)}>{s}</button>))}
+        <button onClick={()=>{setCustom(true);onChange('');}} className={pill(custom)}>{t.other}</button>
+      </div>
+      {custom && <input value={value} autoFocus onChange={(e)=>onChange(e.target.value)} placeholder={t.sourcePh}
+        className="mt-2 w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />}
+    </div>
+  );
+}
+
+const Label = ({ children }) => <p className="text-xs font-medium text-slate-500 mb-1.5">{children}</p>;
+function Input({ label, value, onChange, placeholder, type='text', autoFocus }) {
+  return (
+    <div>
+      <Label>{label}</Label>
+      <input type={type} value={value} autoFocus={autoFocus} onChange={(e)=>onChange(e.target.value)} placeholder={placeholder}
+        className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100" />
+    </div>
+  );
+}
+function EmptyState({ hasAny, onAdd, t }) {
+  return (
+    <div className="text-center mt-20 px-6">
+      <div className="w-14 h-14 mx-auto rounded-2xl bg-violet-100 flex items-center justify-center"><Ico.Bag className="w-7 h-7 text-violet-500" /></div>
+      <p className="mt-4 font-medium text-slate-700">{hasAny?t.emptyFound:t.emptyNone}</p>
+      <p className="mt-1 text-sm text-slate-400">{hasAny?t.emptyFoundSub:t.emptyNoneSub}</p>
+      {!hasAny && <button onClick={onAdd} className="mt-4 px-4 py-2 rounded-xl bg-violet-600 text-white text-sm font-medium">{t.addApp}</button>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Root />);
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.error));
+}
+</script>
+</body>
+</html>

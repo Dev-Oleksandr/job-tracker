@@ -1,0 +1,43 @@
+# Dependencies / build output
+node_modules/
+dist/
+
+# Secrets — NEVER commit these
+*.keystore
+*.jks
+android/keystore.properties
+local.properties
+android/local.properties
+
+# Android build artifacts
+.gradle/
+android/.gradle/
+android/build/
+android/app/build/
+android/capacitor-cordova-android-plugins/
+
+# Capacitor copies the web build here on `cap copy`
+android/app/src/main/assets/public/
+
+# Old empty native template (replaced by Capacitor)
+legacy-native/
+
+# Design references (local only)
+design/
+
+# Claude Code files (local only)
+.claude/
+CLAUDE.md
+
+# Local build notes (superseded by README)
+BUILD.md
+
+# Misc
+.DS_Store
+*.log
+*.iml
+.idea/
+/build
+/captures
+.externalNativeBuild
+.cxx

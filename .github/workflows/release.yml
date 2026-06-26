@@ -1,0 +1,79 @@
+name: Release APK
+
+# Publish a signed APK whenever you push a semver tag like v1.0.1, v1.2.0, …
+# (or run manually from the Actions tab and type a version like 1.0.1).
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   KEYSTORE_BASE64    base64 of jobtracker-release.keystore
+#                      make it with:  base64 -i jobtracker-release.keystore | pbcopy
+#   KEYSTORE_PASSWORD  the keystore password (JobTracker2026 unless you changed it)
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (semver), e.g. 1.0.1'
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Resolve version
+        id: ver
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then V="${{ github.event.inputs.version }}"; else V="${GITHUB_REF_NAME#v}"; fi
+          # versionCode (integer, monotonic) = major*10000 + minor*100 + patch
+          IFS='.' read -r MA MI PA <<< "$V"
+          CODE=$(( MA*10000 + MI*100 + PA ))
+          echo "name=$V"   >> "$GITHUB_OUTPUT"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+
+      - name: Stamp version into app + gradle
+        run: |
+          V="${{ steps.ver.outputs.name }}"
+          CODE="${{ steps.ver.outputs.code }}"
+          printf "export const APP_VERSION = '%s';\n" "$V" > src/version.js
+          sed -i "s/versionCode .*/versionCode $CODE/" android/app/build.gradle
+          sed -i "s/versionName \".*\"/versionName \"$V\"/" android/app/build.gradle
+
+      - run: npm ci
+      - run: npm run build
+      - run: npx cap copy android
+
+      - name: Decode keystore + write signing config
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "$RUNNER_TEMP/release.keystore"
+          printf "storeFile=%s\nstorePassword=%s\nkeyAlias=jobtracker\nkeyPassword=%s\n" \
+            "$RUNNER_TEMP/release.keystore" "${{ secrets.KEYSTORE_PASSWORD }}" "${{ secrets.KEYSTORE_PASSWORD }}" \
+            > android/keystore.properties
+
+      - name: Build signed release APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+          cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/JobTracker-v${{ steps.ver.outputs.name }}.apk"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.ver.outputs.name }}
+          name: Job Tracker v${{ steps.ver.outputs.name }}
+          files: JobTracker-v${{ steps.ver.outputs.name }}.apk
