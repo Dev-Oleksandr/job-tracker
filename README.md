@@ -110,6 +110,18 @@ On every push to `main`, the [release workflow](.github/workflows/release.yml):
 On next launch, phones on an older version show an **"Update available"** banner
 that opens the new APK to install.
 
+### Branches / channels
+
+| Branch | Build | appId | Name | Release |
+|---|---|---|---|---|
+| `main` | production | `com.jobtracker.app` | Job Tracker | `vX.Y.Z` |
+| `develop` | dev / WIP | `com.jobtracker.app.dev` | Job Tracker Dev | rolling pre-release `develop` |
+
+Different appIds mean the **dev and prod apps install side by side** on one phone.
+Push to `develop` to publish a fresh dev APK (the `develop` pre-release); push to
+`main` for a production release. The dev build has the in-app update banner
+disabled (it points at prod releases).
+
 ### Required GitHub secrets
 Set these in **Settings → Secrets and variables → Actions**:
 

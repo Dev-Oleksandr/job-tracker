@@ -1,9 +1,11 @@
-name: Release (production)
+name: Build & Release
 
-# main is the production branch: every push to main builds a SIGNED release APK
-# and publishes (or updates) the GitHub Release for the current version.
-# The version is read from src/version.js (APP_VERSION) — bump it to ship a new
-# version that phones will be offered as an update.
+# Two channels, by branch:
+#   main    → production: appId com.jobtracker.app,     label "Job Tracker",
+#             publishes Release vX.Y.Z (version from src/version.js).
+#   develop → dev build:  appId com.jobtracker.app.dev, label "Job Tracker Dev",
+#             publishes a rolling PRE-release tagged "develop".
+# Different appIds → both apps can be installed side by side.
 #
 # Required repo secrets (Settings → Secrets and variables → Actions):
 #   KEYSTORE_BASE64    base64 of jobtracker-release.keystore
@@ -11,11 +13,11 @@ name: Release (production)
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   workflow_dispatch:
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -32,24 +34,47 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
-      - name: Read version from src/version.js
-        id: ver
+      - name: Resolve channel + version
+        id: cfg
         run: |
           V=$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' src/version.js | head -1)
-          if [ -z "$V" ]; then echo "::error::No semver found in src/version.js"; exit 1; fi
+          if [ -z "$V" ]; then echo "::error::No semver in src/version.js"; exit 1; fi
           IFS='.' read -r MA MI PA <<< "$V"
-          echo "name=$V" >> "$GITHUB_OUTPUT"
+          echo "version=$V" >> "$GITHUB_OUTPUT"
           echo "code=$(( MA*10000 + MI*100 + PA ))" >> "$GITHUB_OUTPUT"
-          echo "Building version $V (versionCode $(( MA*10000 + MI*100 + PA )))"
+          if [ "$GITHUB_REF_NAME" = "develop" ]; then
+            echo "channel=dev"                       >> "$GITHUB_OUTPUT"
+            echo "appid=com.jobtracker.app.dev"      >> "$GITHUB_OUTPUT"
+            echo "label=Job Tracker Dev"             >> "$GITHUB_OUTPUT"
+            echo "tag=develop"                       >> "$GITHUB_OUTPUT"
+            echo "prerelease=true"                   >> "$GITHUB_OUTPUT"
+            echo "relname=Job Tracker Dev (latest)"  >> "$GITHUB_OUTPUT"
+            echo "apk=JobTracker-dev-v$V.apk"        >> "$GITHUB_OUTPUT"
+          else
+            echo "channel=prod"                      >> "$GITHUB_OUTPUT"
+            echo "appid=com.jobtracker.app"          >> "$GITHUB_OUTPUT"
+            echo "label=Job Tracker"                 >> "$GITHUB_OUTPUT"
+            echo "tag=v$V"                           >> "$GITHUB_OUTPUT"
+            echo "prerelease=false"                  >> "$GITHUB_OUTPUT"
+            echo "relname=Job Tracker v$V"           >> "$GITHUB_OUTPUT"
+            echo "apk=JobTracker-v$V.apk"            >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Stamp version into gradle
+      - name: Apply version + channel to project
         run: |
-          sed -i "s/versionCode .*/versionCode ${{ steps.ver.outputs.code }}/" android/app/build.gradle
-          sed -i "s/versionName \".*\"/versionName \"${{ steps.ver.outputs.name }}\"/" android/app/build.gradle
+          sed -i "s/versionCode .*/versionCode ${{ steps.cfg.outputs.code }}/" android/app/build.gradle
+          sed -i "s/versionName \".*\"/versionName \"${{ steps.cfg.outputs.version }}\"/" android/app/build.gradle
+          if [ "${{ steps.cfg.outputs.channel }}" = "dev" ]; then
+            sed -i 's/applicationId "com.jobtracker.app"/applicationId "${{ steps.cfg.outputs.appid }}"/' android/app/build.gradle
+            sed -i 's#<string name="app_name">Job Tracker</string>#<string name="app_name">${{ steps.cfg.outputs.label }}</string>#' android/app/src/main/res/values/strings.xml
+            sed -i 's#<string name="title_activity_main">Job Tracker</string>#<string name="title_activity_main">${{ steps.cfg.outputs.label }}</string>#' android/app/src/main/res/values/strings.xml
+            # dev app has its own appId, so disable the in-app update banner (it points at prod releases)
+            sed -i 's#const GITHUB_REPO = "Dev-Oleksandr/job-tracker";#const GITHUB_REPO = "";#' src/App.jsx
+          fi
 
       - run: npm ci
       - run: npm run build
-      - run: npx cap sync android   # sync (not copy) — regenerates capacitor-cordova-android-plugins/
+      - run: npx cap sync android
 
       - name: Write signing config
         env:
@@ -64,23 +89,24 @@ jobs:
             "$RUNNER_TEMP/release.keystore" "$KEYSTORE_PASSWORD" "$KEYSTORE_PASSWORD" \
             > android/keystore.properties
 
-      - name: Build signed release APK
+      - name: Build signed APK
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon
-          cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/JobTracker-v${{ steps.ver.outputs.name }}.apk"
+          cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/${{ steps.cfg.outputs.apk }}"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: JobTracker-v${{ steps.ver.outputs.name }}
-          path: JobTracker-v${{ steps.ver.outputs.name }}.apk
+          name: ${{ steps.cfg.outputs.apk }}
+          path: ${{ steps.cfg.outputs.apk }}
           if-no-files-found: error
 
-      - name: Publish / update GitHub Release
+      - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.ver.outputs.name }}
-          name: Job Tracker v${{ steps.ver.outputs.name }}
-          files: JobTracker-v${{ steps.ver.outputs.name }}.apk
+          tag_name: ${{ steps.cfg.outputs.tag }}
+          name: ${{ steps.cfg.outputs.relname }}
+          prerelease: ${{ steps.cfg.outputs.prerelease }}
+          files: ${{ steps.cfg.outputs.apk }}
