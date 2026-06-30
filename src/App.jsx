@@ -68,7 +68,7 @@ const sMeta = (id) => STATUS.find(s => s.id === id) || STATUS[0];
 
 const SOURCES = [
   { id: 'djinni',   label: 'Djinni',   color: '#2DBBA0' },
-  { id: 'dou',      label: 'DOU',      color: '#E8552D' },
+  { id: 'dou',      label: 'DOU',      color: '#A855F7' },
   { id: 'linkedin', label: 'LinkedIn', color: '#3B82F6' },
   { id: 'telegram', label: 'Telegram', color: '#2AABEE' },
   { id: 'other',    label: 'Other',    color: 'var(--text-2)' },
@@ -107,7 +107,7 @@ const fmtDate = (iso) => {
 const daysBetween = (a, b) => Math.round((new Date(b) - new Date(a)) / 86400000);
 // History is kept sorted by date ascending → newest-dated entry is the current status.
 const sortHist = (h) => [...(h || [])].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
-const blankForm = () => ({ id: null, company: '', role: '', salary: '', date: TODAY(), link: '', contact: '', notes: '', status: 'applied', source: '', sourceOther: '', history: null });
+const blankForm = () => ({ id: null, company: '', role: '', salary: '', date: TODAY(), link: '', contact: '', notes: '', status: 'applied', source: 'djinni', sourceOther: '', history: null });
 
 /* ============================== db mapping ============================== */
 const fromDb = (r) => ({
@@ -244,8 +244,8 @@ function Login() {
       </button>
       <div onClick={()=>{ setMode(m=>m==='signin'?'signup':'signin'); setErr(''); setNotice(''); }} style={{ textAlign:'center', marginTop:18, fontSize:13.5, color:'var(--text-3)', cursor:'pointer' }}>
         {mode === 'signup'
-          ? <>Already have an account? <span style={{ color:'#7FA8EC', fontWeight:600 }}>Sign in</span></>
-          : <>New here? <span style={{ color:'#7FA8EC', fontWeight:600 }}>Create an account</span></>}
+          ? <>Already have an account? <span style={{ color:'var(--accent)', fontWeight:600 }}>Sign in</span></>
+          : <>New here? <span style={{ color:'var(--accent)', fontWeight:600 }}>Create an account</span></>}
       </div>
     </div>
   );
@@ -346,13 +346,6 @@ function App({ session }) {
   const sinceDays = (days) => { const t = Date.now(); return apps.filter(a => { if (!a.date) return false; const d = t - Date.parse(a.date); return d >= 0 && d <= days * 864e5; }).length; };
   const thisWeek = sinceDays(7);
   const thisMonth = sinceDays(30);
-  // Funnel: how many applications ever reached each stage (cumulative).
-  const funnel = [
-    { label: 'Applied',    color: '#3B82F6', n: total },
-    { label: 'Responded',  color: '#E0A23B', n: responded },
-    { label: 'Interview',  color: '#8B7CF6', n: interviewed },
-    { label: 'Offer',      color: '#2FB37C', n: offers },
-  ];
 
   const hasFilters = filters.length > 0;
   const filtered = apps
@@ -451,7 +444,7 @@ function App({ session }) {
             </div>
             <div style={{ display:'flex', alignItems:'center', gap:10 }}>
               <div onClick={() => setScreen('settings')} title="Settings"
-                style={{ width:40, height:40, borderRadius:'50%', background:'var(--surface)', border:'1px solid var(--border-2)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700, color:'#7FA8EC', fontSize:14, cursor:'pointer' }}>
+                style={{ width:40, height:40, borderRadius:'50%', background:'var(--surface)', border:'1px solid var(--border-2)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:700, color:'var(--accent)', fontSize:14, cursor:'pointer' }}>
                 {(session.user.email?.[0] || 'Y').toUpperCase()}
               </div>
             </div>
@@ -544,11 +537,11 @@ function App({ session }) {
                 <>
                   {/* hero */}
                   <div style={{ display:'flex', gap:12, marginBottom:12 }}>
-                    <div style={{ flex:1, background:'var(--surface)', border:'1px solid var(--border-2)', borderRadius:16, padding:16 }}>
-                      <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:34, fontWeight:700, lineHeight:1 }}>{total}</div>
+                    <div style={{ flex:1, background:'var(--surface)', border:'1px solid var(--border-2)', borderLeft:'3px solid #2A6FDB', borderRadius:16, padding:16 }}>
+                      <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:34, fontWeight:700, lineHeight:1, color:'#2A6FDB' }}>{total}</div>
                       <div style={{ fontSize:12.5, color:'var(--text-2)', marginTop:6 }}>Total applications</div>
                     </div>
-                    <div style={{ flex:1, background:'var(--surface)', border:'1px solid var(--border-2)', borderRadius:16, padding:16 }}>
+                    <div style={{ flex:1, background:'var(--surface)', border:'1px solid var(--border-2)', borderLeft:'3px solid #8B7CF6', borderRadius:16, padding:16 }}>
                       <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:34, fontWeight:700, lineHeight:1, color:'#8B7CF6' }}>{inProgress}</div>
                       <div style={{ fontSize:12.5, color:'var(--text-2)', marginTop:6 }}>In progress</div>
                     </div>
@@ -562,7 +555,7 @@ function App({ session }) {
                       { label:'Interviews',    value:interviewed,          sub:`${pct(interviewed)}% of all`, color:'#8B7CF6' },
                       { label:'Rejected',      value:rejected,             sub:`${pct(rejected)}% of all`, color:'#E0685B' },
                     ].map(m => (
-                      <div key={m.label} style={{ background:'var(--surface)', border:'1px solid var(--border-2)', borderRadius:14, padding:'13px 14px' }}>
+                      <div key={m.label} style={{ background:'var(--surface)', border:'1px solid var(--border-2)', borderLeft:`3px solid ${m.color}`, borderRadius:14, padding:'13px 14px' }}>
                         <div style={{ fontSize:11.5, fontWeight:700, color:'var(--text-2)', letterSpacing:'.2px', textTransform:'uppercase' }}>{m.label}</div>
                         <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:26, fontWeight:700, lineHeight:1.1, marginTop:6, color:m.color }}>{m.value}</div>
                         <div style={{ fontSize:11.5, color:'var(--text-3)', marginTop:3 }}>{m.sub}</div>
@@ -574,47 +567,31 @@ function App({ session }) {
                   <div style={{ fontSize:13, fontWeight:700, color:'var(--text-2)', letterSpacing:'.3px', marginBottom:12 }}>RECENT ACTIVITY</div>
                   <div style={{ display:'flex', gap:12, marginBottom:20 }}>
                     {[{ label:'This week', n:thisWeek }, { label:'This month', n:thisMonth }].map(r => (
-                      <div key={r.label} style={{ flex:1, background:'var(--surface)', border:'1px solid var(--border-2)', borderRadius:14, padding:14, display:'flex', alignItems:'baseline', gap:8 }}>
+                      <div key={r.label} style={{ flex:1, background:'var(--surface)', border:'1px solid var(--border-2)', borderLeft:'3px solid #2A6FDB', borderRadius:14, padding:14, display:'flex', alignItems:'baseline', gap:8 }}>
                         <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:24, fontWeight:700, color:'#2A6FDB' }}>{r.n}</div>
                         <div style={{ fontSize:12.5, color:'var(--text-2)' }}>{r.label}</div>
                       </div>
                     ))}
                   </div>
 
-                  {/* funnel */}
-                  <div style={{ fontSize:13, fontWeight:700, color:'var(--text-2)', letterSpacing:'.3px', marginBottom:12 }}>FUNNEL</div>
-                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:20 }}>
-                    {funnel.map((f, i) => {
-                      const conv = i > 0 ? (funnel[i - 1].n ? Math.round(f.n / funnel[i - 1].n * 100) : 0) : null;
-                      return (
-                        <div key={f.label} style={{ background:'var(--surface)', border:'1px solid var(--border-2)', borderLeft:`3px solid ${f.color}`, borderRadius:14, padding:'13px 14px' }}>
-                          <div style={{ fontSize:11.5, fontWeight:700, color:'var(--text-2)', letterSpacing:'.2px', textTransform:'uppercase' }}>{f.label}</div>
-                          <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:26, fontWeight:700, lineHeight:1.1, marginTop:6, color:f.color }}>{f.n}</div>
-                          <div style={{ fontSize:11.5, color:'var(--text-3)', marginTop:3 }}>
-                            {pct(f.n)}% of total{conv !== null && ` · ${conv}% from prev`}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
                   {/* by status */}
                   <div style={{ fontSize:13, fontWeight:700, color:'var(--text-2)', letterSpacing:'.3px', marginBottom:12 }}>BY STATUS</div>
-                  <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-                    {STATUS.map(s => {
-                      const maxc = Math.max(1, ...STATUS.map(x => counts[x.id]));
-                      return (
-                        <div key={s.id}>
-                          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:7 }}>
-                            <div style={{ display:'flex', alignItems:'center', gap:8, fontSize:13.5, fontWeight:600 }}><span style={{ width:9, height:9, borderRadius:'50%', background:s.color }} />{s.label}</div>
-                            <div style={{ fontSize:13, color:'var(--text-2)' }}><span style={{ color:'var(--text)', fontWeight:700, fontFamily:"'Space Grotesk',sans-serif" }}>{counts[s.id]}</span> · {pct(counts[s.id])}%</div>
-                          </div>
-                          <div style={{ height:8, borderRadius:5, background:'var(--surface-2)', overflow:'hidden' }}>
-                            <div style={{ height:'100%', width:`${counts[s.id] / maxc * 100}%`, background:s.color, borderRadius:5, transition:'width .4s ease' }} />
-                          </div>
-                        </div>
-                      );
-                    })}
+                  {/* proportional distribution bar */}
+                  <div style={{ display:'flex', height:12, borderRadius:6, overflow:'hidden', background:'var(--surface-2)', marginBottom:16 }}>
+                    {STATUS.filter(s => counts[s.id] > 0).map(s => (
+                      <div key={s.id} title={`${s.label}: ${counts[s.id]}`} style={{ width:`${counts[s.id] / total * 100}%`, background:s.color, transition:'width .4s ease' }} />
+                    ))}
+                  </div>
+                  {/* legend */}
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px 16px' }}>
+                    {STATUS.map(s => (
+                      <div key={s.id} style={{ display:'flex', alignItems:'center', gap:9 }}>
+                        <span style={{ flex:'0 0 auto', width:10, height:10, borderRadius:3, background:s.color }} />
+                        <span style={{ flex:1, minWidth:0, fontSize:13, color:'var(--text-2)', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{s.label}</span>
+                        <span style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:14, fontWeight:700 }}>{counts[s.id]}</span>
+                        <span style={{ fontSize:12, color:'var(--text-3)', minWidth:34, textAlign:'right' }}>{pct(counts[s.id])}%</span>
+                      </div>
+                    ))}
                   </div>
                 </>
               )}
@@ -798,7 +775,7 @@ function Changelog({ onBack, current }) {
           <div key={rel.version} style={{ marginBottom:24 }}>
             <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
               <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:18, fontWeight:700 }}>v{rel.version}</div>
-              {rel.version === current && <span style={{ fontSize:11, fontWeight:700, color:'#7FA8EC', background:'rgba(42,111,219,.14)', border:'1px solid rgba(42,111,219,.35)', padding:'2px 8px', borderRadius:8 }}>Current</span>}
+              {rel.version === current && <span style={{ fontSize:11, fontWeight:700, color:'var(--accent)', background:'rgba(42,111,219,.14)', border:'1px solid rgba(42,111,219,.35)', padding:'2px 8px', borderRadius:8 }}>Current</span>}
               <div style={{ fontSize:12.5, color:'var(--text-3)', marginLeft:'auto' }}>{rel.date}</div>
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
@@ -822,13 +799,16 @@ function Details({ sel, hideSalary, statusEditing, timelineEditing, onBack, onEd
   const hist = sel.history || [];
   const tl = hist.slice().reverse();
   const canRemove = hist.length > 1;
+  const [notesOpen, setNotesOpen] = useState(false);
+  const NOTES_LIMIT = 160;
+  const notesLong = (sel.notes || '').length > NOTES_LIMIT;
 
   const fields = [];
   fields.push({ label:'Date applied', value:fmtDate(sel.date), color:'var(--text)' });
   if (sel.source) fields.push({ label:'Source', value:sourceLabel(sel), color:sourceColor(sel) });
   if (sel.salary) fields.push({ label:'Salary', value:hideSalary?'••••':sel.salary, color:'var(--text)' });
   if (sel.contact) fields.push({ label:'Contact', value:sel.contact, color:'var(--text)', isContact:true, onTap:() => onTapContact(sel.contact) });
-  if (sel.link) fields.push({ label:'Job link', value:sel.link.replace(/^https?:\/\//,''), color:'#7FA8EC', isLink:true, onTap:() => onOpenLink(sel.link) });
+  if (sel.link) fields.push({ label:'Job link', value:sel.link.replace(/^https?:\/\//,''), color:'var(--accent)', isLink:true, onTap:() => onOpenLink(sel.link) });
 
   return (
     <div style={{ flex:1, display:'flex', flexDirection:'column', minHeight:0, animation:'jtFade .25s ease' }}>
@@ -880,7 +860,7 @@ function Details({ sel, hideSalary, statusEditing, timelineEditing, onBack, onEd
               <div style={{ fontSize:13, color:'var(--text-2)', flex:'0 0 auto' }}>{f.label}</div>
               <div style={{ display:'flex', alignItems:'center', gap:8, minWidth:0, justifyContent:'flex-end' }}>
                 <span style={{ fontSize:14, fontWeight:600, textAlign:'right', color:f.color, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{f.value}</span>
-                {f.isLink && <span style={{ flex:'0 0 auto', width:28, height:28, borderRadius:8, background:'rgba(42,111,219,.14)', display:'flex', alignItems:'center', justifyContent:'center' }}><Icon.Link width="14" height="14" style={{ color:'#7FA8EC' }} /></span>}
+                {f.isLink && <span style={{ flex:'0 0 auto', width:28, height:28, borderRadius:8, background:'rgba(42,111,219,.14)', display:'flex', alignItems:'center', justifyContent:'center' }}><Icon.Link width="14" height="14" style={{ color:'var(--accent)' }} /></span>}
                 {f.isContact && <span style={{ flex:'0 0 auto', width:28, height:28, borderRadius:8, background:'var(--chip)', display:'flex', alignItems:'center', justifyContent:'center' }}><Icon.Copy width="14" height="14" style={{ color:'var(--text-2)' }} /></span>}
               </div>
             </div>
@@ -891,7 +871,12 @@ function Details({ sel, hideSalary, statusEditing, timelineEditing, onBack, onEd
         {sel.notes && sel.notes.trim() && (
           <div style={{ marginTop:18 }}>
             <div style={{ fontSize:12.5, fontWeight:700, color:'var(--text-2)', letterSpacing:'.3px', marginBottom:9 }}>NOTES</div>
-            <div style={{ background:'var(--surface)', border:'1px solid var(--surface-2)', borderRadius:14, padding:'14px 16px', fontSize:14, lineHeight:1.55, color:'var(--text-strong)' }}>{sel.notes}</div>
+            <div style={{ background:'var(--surface)', border:'1px solid var(--surface-2)', borderRadius:14, padding:'14px 16px', fontSize:14, lineHeight:1.55, color:'var(--text-strong)' }}>
+              <div style={{ whiteSpace:'pre-wrap', overflowWrap:'anywhere', wordBreak:'break-word' }}>{notesLong && !notesOpen ? sel.notes.slice(0, NOTES_LIMIT).trimEnd() + '…' : sel.notes}</div>
+              {notesLong && (
+                <div onClick={() => setNotesOpen(o => !o)} style={{ marginTop:8, color:'var(--accent)', fontWeight:600, cursor:'pointer' }}>{notesOpen ? 'See less' : 'See more'}</div>
+              )}
+            </div>
           </div>
         )}
 
@@ -899,7 +884,7 @@ function Details({ sel, hideSalary, statusEditing, timelineEditing, onBack, onEd
         <div style={{ marginTop:22 }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
             <span style={{ fontSize:12.5, fontWeight:700, color:'var(--text-2)', letterSpacing:'.3px' }}>TIMELINE</span>
-            <div onClick={onToggleTimelineEdit} style={{ height:28, padding:'0 11px', display:'flex', alignItems:'center', gap:6, borderRadius:8, border:'1px solid var(--border)', background:'var(--surface)', fontSize:12, fontWeight:600, color:'#7FA8EC', cursor:'pointer' }}><Icon.Pencil width="12" height="12" style={{ color:'#7FA8EC' }} />{timelineEditing ? 'Done' : 'Edit'}</div>
+            <div onClick={onToggleTimelineEdit} style={{ height:28, padding:'0 11px', display:'flex', alignItems:'center', gap:6, borderRadius:8, border:'1px solid var(--border)', background:'var(--surface)', fontSize:12, fontWeight:600, color:'var(--accent)', cursor:'pointer' }}><Icon.Pencil width="12" height="12" style={{ color:'var(--accent)' }} />{timelineEditing ? 'Done' : 'Edit'}</div>
           </div>
           <div style={{ display:'flex', flexDirection:'column' }}>
             {tl.map((h, i) => {

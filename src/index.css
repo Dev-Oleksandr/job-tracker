@@ -16,6 +16,7 @@
   --border: #2C323C;
   --border-2: #262B33;
   --border-3: #3A414C;
+  --accent: #7FA8EC; /* links / icon tints — pale blue reads well on dark */
 }
 :root[data-theme="light"] {
   --scheme: light;
@@ -33,6 +34,7 @@
   --border: #E2E5EA;
   --border-2: #E8EAEE;
   --border-3: #D2D7DE;
+  --accent: #2A6FDB; /* stronger blue for contrast on light surfaces */
 }
 
 :root { color-scheme: var(--scheme); }

@@ -16,6 +16,8 @@ android/build/
 android/app/build/
 android/capacitor-cordova-android-plugins/
 
+scripts/
+
 # Capacitor copies the web build here on `cap copy`
 android/app/src/main/assets/public/
 

@@ -4,6 +4,16 @@
 // Newest version first. Keep entries short and user-facing.
 export const CHANGELOG = [
   {
+    version: '1.4.0',
+    date: '2026-06-29',
+    changes: [
+      'New applications start with a default source selected (like the status).',
+      'Refreshed Insights: accent cards for every metric and an at-a-glance status distribution; removed the funnel.',
+      'Long notes now collapse behind a “See more” toggle.',
+      'Better contrast for links and icons on the light theme.',
+    ],
+  },
+  {
     version: '1.3.0',
     date: '2026-06-26',
     changes: [
