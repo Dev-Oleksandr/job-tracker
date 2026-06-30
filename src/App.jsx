@@ -972,7 +972,7 @@ function Form({ mode, form, setF, error, onCancel, onSave, onSource, onSourceOth
 
         <div style={{ display:'flex', gap:12 }}>
           <div style={{ flex:1 }}><div style={label}>Salary</div><input value={form.salary} onChange={(e)=>setF('salary',e.target.value)} placeholder="$160k" style={input} /></div>
-          <div style={{ flex:1 }}><div style={label}>Date applied</div><input type="date" value={form.date} onChange={(e)=>setF('date',e.target.value)} style={{ ...input, fontSize:14, colorScheme:'var(--scheme)' }} /></div>
+          <div style={{ flex:1 }}><div style={label}>Date applied</div><input type="text" value={form.date} onFocus={(e)=>{e.target.type='date'}} onBlur={(e)=>{if(!e.target.value)e.target.type='text'}} onChange={(e)=>setF('date',e.target.value)} placeholder="YYYY-MM-DD" style={{ ...input, fontSize:14, colorScheme:'var(--scheme)' }} /></div>
         </div>
 
         <div><div style={label}>Contact person</div><input value={form.contact} onChange={(e)=>setF('contact',e.target.value)} placeholder="e.g. Dana Whitfield · Recruiter" style={input} /></div>
