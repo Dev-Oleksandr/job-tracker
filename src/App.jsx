@@ -859,9 +859,12 @@ function Details({ sel, hideSalary, statusEditing, timelineEditing, onBack, onEd
             <div key={i} onClick={f.onTap} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:16, padding:'14px 16px', borderBottom:i<fields.length-1?'1px solid var(--surface-2)':'none', cursor:f.onTap?'pointer':'default' }}>
               <div style={{ fontSize:13, color:'var(--text-2)', flex:'0 0 auto' }}>{f.label}</div>
               <div style={{ display:'flex', alignItems:'center', gap:8, minWidth:0, justifyContent:'flex-end' }}>
-                <span style={{ fontSize:14, fontWeight:600, textAlign:'right', color:f.color, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{f.value}</span>
+                <span style={{ flex:'1 1 auto', fontSize:14, fontWeight:600, textAlign:'right', color:f.color, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{f.value}</span>
                 {f.isLink && <span style={{ flex:'0 0 auto', width:28, height:28, borderRadius:8, background:'rgba(42,111,219,.14)', display:'flex', alignItems:'center', justifyContent:'center' }}><Icon.Link width="14" height="14" style={{ color:'var(--accent)' }} /></span>}
                 {f.isContact && <span style={{ flex:'0 0 auto', width:28, height:28, borderRadius:8, background:'var(--chip)', display:'flex', alignItems:'center', justifyContent:'center' }}><Icon.Copy width="14" height="14" style={{ color:'var(--text-2)' }} /></span>}
+                <span style={{ flex:'0 0 auto', width:26, height:26, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <Icon.Chevron width="14" height="14" style={{ color:'var(--text-3)', transform:'rotate(-90deg)' }} />
+                </span>
               </div>
             </div>
           ))}
@@ -972,7 +975,7 @@ function Form({ mode, form, setF, error, onCancel, onSave, onSource, onSourceOth
 
         <div style={{ display:'flex', gap:12 }}>
           <div style={{ flex:1 }}><div style={label}>Salary</div><input value={form.salary} onChange={(e)=>setF('salary',e.target.value)} placeholder="$160k" style={input} /></div>
-          <div style={{ flex:1 }}><div style={label}>Date applied</div><input type="text" value={form.date} onFocus={(e)=>{e.target.type='date'}} onBlur={(e)=>{if(!e.target.value)e.target.type='text'}} onChange={(e)=>setF('date',e.target.value)} placeholder="YYYY-MM-DD" style={{ ...input, fontSize:14, colorScheme:'var(--scheme)' }} /></div>
+          <div style={{ flex:1 }}><div style={label}>Date applied</div><input type="date" value={form.date} onChange={(e)=>setF('date',e.target.value)} style={{ ...input, fontSize:14, colorScheme:'var(--scheme)', paddingRight:40 }} /></div>
         </div>
 
         <div><div style={label}>Contact person</div><input value={form.contact} onChange={(e)=>setF('contact',e.target.value)} placeholder="e.g. Dana Whitfield · Recruiter" style={input} /></div>
