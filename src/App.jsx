@@ -628,7 +628,7 @@ function App({ session }) {
       {screen === 'form' && (
         <Form mode={formMode} form={form} setF={setF} error={formError}
           onCancel={cancelForm} onSave={save}
-          onSource={(id) => setForm(s => ({ ...s, source: s.source === id ? '' : id }))}
+          onSource={(id) => setForm(s => ({ ...s, source: id }))}
           onSourceOther={(v) => setF('sourceOther', (v || '').slice(0, 30))} />
       )}
 
